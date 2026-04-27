@@ -1,0 +1,50 @@
+# --- Carpetas de compilación y temporales ---
+.vs/
+ipch/
+x86/
+
+# Regla especial para x64 (Ignora todo excepto DLLs)
+x64/*
+!x64/
+!x64/**/*.dll
+
+# Regla especial para Debug (Ignora todo excepto DLLs)
+Debug/*
+!Debug/
+!Debug/**/*.dll
+
+# Regla especial para Release (Ignora todo excepto DLLs)
+Release/*
+!Release/
+!Release/**/*.dll
+*.iobj
+*.ipdb
+
+# --- Archivos generados por el compilador ---
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.idb
+*.lib
+*.tlog
+*.lastbuildstate
+*.recipe
+*.cache
+*.log
+
+# --- Archivos de base de datos e IntelliSense---
+*.db
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+*.ipch
+
+# --- Archivos de usuario y configuración local ---
+*.user
+*.suo
+*.aps
+
+# --- Ejecutables ---
+*.exe
+
