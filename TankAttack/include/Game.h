@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "map.h"
 
 enum class GameState {
 	menu,
@@ -21,6 +22,7 @@ private:
 	sf::RenderWindow* windowGame;
 	sf::Event gameEvent;
 	sf::VideoMode videoMode;
+	sf::Vector2u windowSize;
 
 	// estado del juego
 	GameState State;
@@ -44,6 +46,9 @@ private:
 	sf::RectangleShape backButton;
 	sf::Text backText;
 	bool GameInit = false;
+
+	// mapa
+	Map* gameMap;
 
 
 

@@ -1,5 +1,6 @@
 #include<iostream>
 #include "Game.h"
+#include "map.h"
 
 using namespace std;
 
@@ -9,12 +10,14 @@ Game::Game()
 {
 	this->initVariables();
 	this->initWindow();
+	this->gameMap = new Map(15,this->windowGame,this->windowSize);
 
 }
 
 Game::~Game()
 {
 	delete this->windowGame;
+	delete this->gameMap;
 
 }
 
@@ -35,6 +38,7 @@ void Game::initWindow()
 {
 	this->videoMode = sf::VideoMode::getDesktopMode();
 	this->windowGame = new sf::RenderWindow(this->videoMode, "Tank Attack Game", sf::Style::Fullscreen);
+	this->windowSize = this->windowGame->getSize();
 }
 
 // metodos publicos 
@@ -176,9 +180,7 @@ void Game::initMenu()
 void Game::updateMenu()
 {
 	// obtener la posición actual del mouse relativa a la ventana
-	sf::Vector2f mousePos = this->windowGame->mapPixelToCoords(
-		sf::Mouse::getPosition(*this->windowGame)
-	);
+	sf::Vector2f mousePos = this->windowGame->mapPixelToCoords(sf::Mouse::getPosition(*this->windowGame));
 
 	// cambiar color de los botones si el mouse está sobre ellos
 
@@ -220,7 +222,7 @@ void Game::renderMenu()
 	);
 
 	// dibujar en orden: fondo primero, luego botones, luego textos encima
-	this->windowGame->draw(backgroundMenu); 
+	this->windowGame->draw(this->backgroundMenu); 
 	this->windowGame->draw(this->playButton); 
 	this->windowGame->draw(this->playText);  
 	this->windowGame->draw(this->closeButton);
@@ -256,8 +258,15 @@ void Game::updateGame()
 
 void Game::renderGame()
 {
-	this->windowGame->clear(sf::Color::Black);
+	this->gameMap->createMap();
+	this->windowGame->draw(this->backButton);
+	this->windowGame->draw(this->backText);
+
+	// crear mapa
+
+
 }
+
 
 
 // metodos de acceso a variables privadas
