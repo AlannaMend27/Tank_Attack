@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "map.h"
 
+
 enum class GameState {
 	menu,
 	playing,
@@ -49,6 +50,7 @@ private:
 
 	// mapa
 	Map* gameMap;
+
 
 
 

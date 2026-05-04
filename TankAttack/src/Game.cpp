@@ -1,4 +1,5 @@
 #include<iostream>
+#include <ctime>
 #include "Game.h"
 #include "map.h"
 
@@ -8,6 +9,7 @@ using namespace std;
 
 Game::Game() 
 {
+	srand(time(0));
 	this->initVariables();
 	this->initWindow();
 	this->gameMap = new Map(15,this->windowGame,this->windowSize);
@@ -46,7 +48,7 @@ void Game::initWindow()
 // maneja los eventos del juego 
 void Game::PollEvents() {
 	/*
-	 	Metodo PollEvents: Este metodo busca manejar los eventos que recibe la venatana
+	 	Metodo PollEvents: Este metodo busca manejar los eventos que recibe la ventana
 
 		- pregunta si hay eventos
 		- verifica el tipo de evento con un switch
@@ -76,6 +78,7 @@ void Game::PollEvents() {
 				if (this->State == GameState::menu) {
 					if (this->playButton.getGlobalBounds().contains(mousePos)) {
 						this->State = GameState::playing;
+						this->GameInit = false;
 					}
 					if (this->closeButton.getGlobalBounds().contains(mousePos)) {
 						this->windowGame->close();
@@ -128,7 +131,7 @@ void Game::render() {
 		break;
 	}
 
-	// diabujar juego
+	// dibujar juego
 
 	this->windowGame->display();
 
@@ -233,38 +236,40 @@ void Game::renderMenu()
 // metodos de la ventana del juego principal
 void Game::initGame()
 {
-	//Boton de volver
-	this->backButton.setSize(sf::Vector2f(200, 60));
-	this->backButton.setFillColor(sf::Color(0, 100, 200));
-	this->backButton.setPosition(300, 400);
+	//Este if es por que 
+	if (!this->GameInit) {
+		//Boton de volver
+		this->backButton.setSize(sf::Vector2f(200, 60));
+		this->backButton.setFillColor(sf::Color(0, 100, 200));
+		this->backButton.setPosition(300, 400);
 
-	//Texto del boton volver
-	this->backText.setFont(font);
-	this->backText.setString("Volver");
-	this->backText.setCharacterSize(30);
-	this->backText.setFillColor(sf::Color::White);
-	this->backText.setPosition(340, 410);
+		//Texto del boton volver
+		this->backText.setFont(font);
+		this->backText.setString("Volver");
+		this->backText.setCharacterSize(30);
+		this->backText.setFillColor(sf::Color::White);
+		this->backText.setPosition(340, 410);
 
-	// actualizar bandera
-	this->GameInit = true;
-
-
+		// actualizar bandera
+		this->GameInit = true;
+	}
+	//Esto siempre para que siempre se genere un mapa nuevo
+	this->gameMap->createMap();
 }
 
 void Game::updateGame()
 {
-	// en esta parte ira la logica del cambio d eposicion de tanques y todo eso
+	// en esta parte ira la logica del cambio de posicion de tanques y todo eso 
 }
 
 void Game::renderGame()
 {
-	this->gameMap->createMap();
+	// crear mapa
+	this->windowGame->clear();
+	this->gameMap->drawMap();
 	this->windowGame->draw(this->backButton);
 	this->windowGame->draw(this->backText);
-
-	// crear mapa
-
-
+	
 }
 
 

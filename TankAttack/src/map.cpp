@@ -26,7 +26,7 @@ void Map::initMap()
 	this->wallMap.setTexture(this->wall);
 
 	// mapa
-	this->backgruound.loadFromFile("assets/textures/backgroundMap.png");
+	this->backgruound.loadFromFile("assets/textures/TempBackgroundMap.png");
 	this->backgroundMap.setTexture(this->backgruound);
 
 
@@ -36,6 +36,12 @@ void Map::createMap()
 {
 	this->graphMap = new graph(this->size);
 	this->generateObstacles();
+
+	//Si no todos los nodos son accesibles, genere los obstaculos de nuevo, hasta que si
+	while (!this->isEveryNodeAccessible()) {
+		this->generateObstacles();
+	}
+
 	this->generateGraph();
 	this->renderMap();
 }
@@ -44,26 +50,33 @@ void Map::createMap()
 
 void Map::generateObstacles()
 {
-	// de momento no es aleatorio, sino que inicializa con algunos obstaculos (solo para visualizar)
 
-	// crear mapa
+	//borramos la matriz, por si los nodos no son acessibles y se regeneran los obstaculos. es decir creamos un nuevo mapa aleatorio
 	for (int i = 0; i < this->mapSize; i++) {
 		for (int j = 0; j < this->mapSize; j++) {
 			this->mapMatrix[i][j] = 0;
 		}
 	}
 
-	// crear algunos obstaculos
-	for (int i = 0; i < this->mapSize; i++) {
-		if (i == 4 || i == 8) {
-			int cont = 8;
-			while (cont>4) {
-				this->mapMatrix[i][cont] = 1;
-				cont--;
-			}
-		}
-	}
+	//Numero de muros y los restantes por colocar
+	int totalWalls = 30;
+	int wallsPlaced = 0;
 
+	while (wallsPlaced < totalWalls) {
+
+		// se colocan los muros aleatoriamente
+		int randomRow = rand() % this->mapSize;
+		int randomCol = rand() % this->mapSize;
+
+		// solo coloca el muro si no es una esquina y si esta libre, si ya hay un muro ahi intenta otra posicion
+		if (!this->isCorner(randomRow, randomCol) && this->mapMatrix[randomRow][randomCol] == 0) {
+
+			//se coloca el muro y lo marcamos
+			this->mapMatrix[randomRow][randomCol] = 1;
+			wallsPlaced++;
+		}
+
+	}
 
 }
 
@@ -84,7 +97,7 @@ void Map::generateGraph()
 					int newCol = columns[k] + j;
 
 					// calcular si las posiciones son validas
-					if (newRow >= 0 && newRow < this->mapSize && newCol >= 0 && newCol < this->mapSize) {
+					if (this->isPositionValid(newRow, newCol)) {
 						// si la posicion es valida y la celda esta libre, agregar arista
 						if (this->mapMatrix[i][j] == 0) {
 							this->graphMap->createEdge(toIndex(i,j) , toIndex(newRow, newCol), 1);
@@ -103,8 +116,113 @@ int Map::toIndex(int row, int col)
 	// convierte un indice de la matriz del mapa a un indice en la matriz de adyacencia del grafo
 	return row * this->mapSize + col;
 
-	// notita: seria bueno generar uno inverso para traducir las coordenadas de un nodo del grafo a las de la matriz de mapa
+	// notita: ya esta el inverso :D
 
+}
+
+// convierten un indice de la matriz de adyacencia del grafo a un indice de la matriz del mapa
+
+int Map::toRow(int index)
+{
+	return index / this->mapSize;
+}
+
+int Map::toCol(int index) 
+{
+	return index % this->mapSize;
+}
+
+
+//Metodos que verifican ciertos parametros de las posiciones
+
+bool Map::isPositionValid(int row, int col) 
+{
+	//Verifica si la la fila/col no es negativa y si no es mayor al tamanio del mapa
+	if (row >= 0 && row < this->mapSize && col >= 0 && col < this->mapSize) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+//Para proteger los nodos de las esquinas (para los tanques al inicio), dependiendo del tamanio del mapa los 14 se cambian
+
+bool Map::isCorner(int row, int col) 
+{
+	if ((row == 0 && col == 0) || (row == 0 && col == 14) || (row == 14 && col == 0) || (row == 14 && col == 14)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool Map::isEveryNodeAccessible() 
+{
+	//El "BFS" implementado aqui es solo de verificacion, el de los tanques retorna la posicion, ese es diferente
+
+	//Creamos una matriz empezada todo en falso, es para decir si ya fuimos a esa posicion, la cola es para los que faltan por visitar
+	bool visited[this->mapSize][this->mapSize] = {};
+	Queue BFSQueue;
+
+	//Se arranca a visitar desde la esquina superior izquiera (0,0) y se marca como visitada
+	visited[0][0] = true;
+	BFSQueue.enqueue(this->toIndex(0, 0)); //se aniade a la cola
+
+	int Rows[4] = { -1,1,0,0 }; // mismos pares (-1,0) up, (1,0) down , (0,-1) left y (0,1) right
+	int Cols[4] = { 0,0,-1,1 };
+
+	/*
+	El flujo de este while es el siguiente:
+	- Mientras la cola no este vacia, saca la primera posicion en la cola 
+	- Convierte esa posicion convierte a un indice de la matriz (es el inverso de toindex)
+	- Luego de tener las posiciones vamos a las 4 posiciones las de los arreglos Rows y Cols
+	- Mientras se recorre el for hay un if que verifica lo siguiente
+		1. isPositionValid() -> Si no se sale del mapa o bien si la posicion no es negativa
+		2. !visited sis no lo heos visitado aun
+		3. mapMatrix == 0 es una celda libre no muro
+	- En caso de que todo lo anterior sea true, agregamos la posicion que se puede visitar 
+	- Hacemos lo mismo hasta que la cola este vacia
+	*/
+	while (!BFSQueue.isEmpty()) {
+
+		int currentCell = BFSQueue.peek();
+		BFSQueue.dequeue();
+
+		//convertir el indice a fila y columna
+		int currentRow = this->toRow(currentCell);
+		int currentCol = this->toCol(currentCell);
+
+
+		for (int i = 0; i < 4; i++) {
+
+			int neighborRow = currentRow + Rows[i];
+			int neighborCol = currentCol + Cols[i];
+
+			if (this->isPositionValid(neighborRow, neighborCol) && !visited[neighborRow][neighborCol] && this->mapMatrix[neighborRow][neighborCol] == 0) {
+				visited[neighborRow][neighborCol] = true;
+				BFSQueue.enqueue(this->toIndex(neighborRow, neighborCol));
+			}
+		}
+	}
+
+	/*
+	Esto es la verificacion definitiva, recorre la matriz buscando celdas libres == 0 
+	si alguna de esas no fue visitada (!visited) es por que hay una celda sola o aislada,
+	retorna false si e el caso, si no true, esto por que a la hora de crear el mapa
+	si este metodo es falso se generan muros aleatorios hasta que sea true
+	*/
+	for (int i = 0; i < mapSize; i++) {
+		for (int j = 0; j < mapSize; j++) {
+			if (this->mapMatrix[i][j] == 0 && !visited[i][j]) {
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 void Map::renderMap()
@@ -137,4 +255,9 @@ void Map::renderMap()
 
 }
 
+//Publico para que pueda ser llamado
+void Map::drawMap() {
 
+	this->renderMap();
+
+}
