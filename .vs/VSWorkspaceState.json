@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\TankAttack",
+    "\\TankAttack\\include",
+    "\\TankAttack\\src",
+    "\\TankAttack\\structures",
+    "\\TankAttack\\x64"
+  ],
+  "SelectedNode": "\\TankAttack\\structures\\grafo.cpp",
+  "PreviewInSolutionExplorer": false
+}
