@@ -5,7 +5,7 @@
 
 using namespace std;
 
-// constructor y destrcutor
+// constructor y destructor
 
 Game::Game() 
 {
@@ -20,6 +20,11 @@ Game::~Game()
 {
 	delete this->windowGame;
 	delete this->gameMap;
+
+	delete this->tanks[0];
+	delete this->tanks[1];
+	delete this->tanks[2];
+	delete this->tanks[3];
 
 }
 
@@ -85,8 +90,11 @@ void Game::PollEvents() {
 						break;
 					}
 				}
-				else {
-					this->State = GameState::menu;
+				//Boton volver
+				if (this->State == GameState::playing) {
+					if (this->backButton.getGlobalBounds().contains(mousePos)) {
+						this->State = GameState::menu;
+					}
 				}
 
 			}
@@ -236,19 +244,25 @@ void Game::renderMenu()
 // metodos de la ventana del juego principal
 void Game::initGame()
 {
-	//Este if es por que 
+	//Este if es para separar lo que siempre es fijo y lo que no, mapa siempre cambia, los botones y donde salen los tanques no
 	if (!this->GameInit) {
 		//Boton de volver
 		this->backButton.setSize(sf::Vector2f(200, 60));
 		this->backButton.setFillColor(sf::Color(0, 100, 200));
-		this->backButton.setPosition(300, 400);
+		this->backButton.setPosition(860, 20);
 
 		//Texto del boton volver
 		this->backText.setFont(font);
 		this->backText.setString("Volver");
 		this->backText.setCharacterSize(30);
 		this->backText.setFillColor(sf::Color::White);
-		this->backText.setPosition(340, 410);
+		this->backText.setPosition(900, 30);
+
+		//Tanques, esos 14 son los que cambian si se cambia mapsize
+		this->tanks[0] = new Tank(0, 0, this->windowSize, this->windowGame, "assets/textures/tank_0.png");
+		this->tanks[1] = new Tank(14, 0, this->windowSize, this->windowGame, "assets/textures/tank_1.png");
+		this->tanks[2] = new Tank(0, 14, this->windowSize, this->windowGame, "assets/textures/tank_2.png");
+		this->tanks[3] = new Tank(14, 14, this->windowSize, this->windowGame, "assets/textures/tank_3.png");
 
 		// actualizar bandera
 		this->GameInit = true;
@@ -260,6 +274,7 @@ void Game::initGame()
 void Game::updateGame()
 {
 	// en esta parte ira la logica del cambio de posicion de tanques y todo eso 
+	// NOTA: Si se le quiere poner que el boton volver tenga la misma animacion va aqui
 }
 
 void Game::renderGame()
@@ -269,6 +284,11 @@ void Game::renderGame()
 	this->gameMap->drawMap();
 	this->windowGame->draw(this->backButton);
 	this->windowGame->draw(this->backText);
+
+	this->tanks[0]->createTank();
+	this->tanks[1]->createTank();
+	this->tanks[2]->createTank();
+	this->tanks[3]->createTank();
 	
 }
 

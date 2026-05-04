@@ -23,7 +23,7 @@ private:
 	sf::Texture wall;
 	sf::Sprite wallMap;
 
-	sf::Texture backgruound;
+	sf::Texture background;
 	sf::Sprite backgroundMap;
 
 	// metodos privados

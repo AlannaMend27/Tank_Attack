@@ -4,34 +4,29 @@
 class Tank {
 private:
 
-	//ATRIBUTOS 
-	
-	//posicion logica en el mapa
-	int row;
-	int col;
+	//ATRIBUTOS
+	int currentRow;
+	int currentCol;
 
-	//para calcular el tamaño del tanque 
 	sf::Vector2u windowSize;
 	sf::RenderWindow* window;
 
-	//Sprites del tenque
-	sf::Texture tank_texture;
-	sf::Sprite tank_sprite;
-	
+	std::string texturePath; //Por que son 4 texturas
+	sf::Texture tankTexture;
+	sf::Sprite tankSprite;
+
+	//metodos privados
+	void initTank();
+	void renderTank();
 
 public:
-
 	//Constructor y destructor
-	Tank(int row, int col, sf::Vector2u windowSize,sf::RenderWindow* window, std::string tankTexturePath);
+	Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, std::string texturePath);
 	~Tank();
 
-	//Metodos publicos de momento
-
-	void createTank();
-
-	//Retornan la posicion del tanque
-	int getRow();
-	int getCol();
+	//Metodos publicos
+	void createTank(); 
+	int getCurrentRow();
+	int getCurrentCol();
 
 };
-

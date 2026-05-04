@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "map.h"
-
+#include "tank.h"
 
 enum class GameState {
 	menu,
@@ -51,6 +51,8 @@ private:
 	// mapa
 	Map* gameMap;
 
+	// tanques
+	Tank* tanks[4];
 
 
 

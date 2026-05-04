@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\Tank.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\map.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="include\grafo.h" />
     <ClInclude Include="include\map.h" />
     <ClInclude Include="include\queue.h" />
+    <ClInclude Include="include\tank.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -26,8 +26,8 @@ void Map::initMap()
 	this->wallMap.setTexture(this->wall);
 
 	// mapa
-	this->backgruound.loadFromFile("assets/textures/TempBackgroundMap.png");
-	this->backgroundMap.setTexture(this->backgruound);
+	this->background.loadFromFile("assets/textures/mapBackground.png");
+	this->backgroundMap.setTexture(this->background);
 
 
 }
@@ -229,8 +229,8 @@ void Map::renderMap()
 {
 	// dibujar mapa de fondo
 	this->backgroundMap.setScale(
-		(float)this->windowSize.x / this->backgruound.getSize().x,
-		(float)this->windowSize.y / this->backgruound.getSize().y
+		(float)this->windowSize.x / this->background.getSize().x,
+		(float)this->windowSize.y / this->background.getSize().y
 	);
 	this->window->draw(this->backgroundMap);
 
