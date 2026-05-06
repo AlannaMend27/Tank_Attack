@@ -12,7 +12,7 @@ Game::Game()
 	srand(time(0));
 	this->initVariables();
 	this->initWindow();
-	this->gameMap = new Map(15,this->windowGame,this->windowSize);
+	this->gameMap = new Map(MAP_SIZE,this->windowGame,this->windowSize);
 
 }
 
@@ -25,6 +25,9 @@ Game::~Game()
 	delete this->tanks[1];
 	delete this->tanks[2];
 	delete this->tanks[3];
+
+	delete this->players[0];
+	delete this->players[1];
 
 }
 
@@ -61,6 +64,7 @@ void Game::PollEvents() {
 		- si se identifica que se presiono una tecla, se revisa cual fue
 			- Escape: se sale del juego
 			- Mouse: revisa donde fue, para ingresar al juego o salir con el boton
+			- Tecla C: Cambia el jugador (para probar mientras)
 	*/
 
 	while (this->windowGame->pollEvent(gameEvent)) {
@@ -71,6 +75,10 @@ void Game::PollEvents() {
 		case sf::Event::KeyPressed:
 			if (this->gameEvent.key.code == sf::Keyboard::Escape) {
 				this->windowGame->close();
+			}
+			//Mientras para probar el cambio de turno con c
+			if (this->gameEvent.key.code == sf::Keyboard::C && this->State == GameState::playing) {
+				this->switchTurn();
 			}
 			break;
 
@@ -258,11 +266,16 @@ void Game::initGame()
 		this->backText.setFillColor(sf::Color::White);
 		this->backText.setPosition(900, 30);
 
-		//Tanques, esos 14 son los que cambian si se cambia mapsize
+		//Tanques en las esquinas (MAP_SIZE -1)
 		this->tanks[0] = new Tank(0, 0, this->windowSize, this->windowGame, "assets/textures/tank_0.png");
-		this->tanks[1] = new Tank(14, 0, this->windowSize, this->windowGame, "assets/textures/tank_1.png");
-		this->tanks[2] = new Tank(0, 14, this->windowSize, this->windowGame, "assets/textures/tank_2.png");
-		this->tanks[3] = new Tank(14, 14, this->windowSize, this->windowGame, "assets/textures/tank_3.png");
+		this->tanks[1] = new Tank(MAP_SIZE - 1, 0, this->windowSize, this->windowGame, "assets/textures/tank_1.png");
+		this->tanks[2] = new Tank(0, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_2.png");
+		this->tanks[3] = new Tank(MAP_SIZE - 1, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_3.png");
+
+		//Jugadores, el 1 empieza y tiene los tanques 0 y 1 el jugador 2, tiene los tanques 2 y 3
+		this->players[0] = new Player(1, this->tanks[0], this->tanks[1], true);
+		this->players[1] = new Player(2, this->tanks[2], this->tanks[3], false);
+		this->currentPlayer = 0;
 
 		// actualizar bandera
 		this->GameInit = true;
@@ -270,6 +283,23 @@ void Game::initGame()
 	//Esto siempre para que siempre se genere un mapa nuevo
 	this->gameMap->createMap();
 }
+
+void Game::switchTurn()
+{
+	// desactiva el turno al jugador actual
+	this->players[this->currentPlayer]->setTurn(false);
+
+	//Cambia el turno al otro jugador
+	if (this->currentPlayer == 0) {
+		this->currentPlayer = 1;
+	}
+	else {
+		this->currentPlayer = 0;
+	}
+
+	this->players[this->currentPlayer]->setTurn(true);
+}
+
 
 void Game::updateGame()
 {
@@ -289,7 +319,34 @@ void Game::renderGame()
 	this->tanks[1]->createTank();
 	this->tanks[2]->createTank();
 	this->tanks[3]->createTank();
-	
+
+	// NOTA : ESTO ES POR MIENTRAS: ES PARA RESALTAR LOS TANQUES SEGUN EL TURNO LINEA 324-347
+	float cellWidth = (float)this->windowSize.x / MAP_SIZE;
+	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
+
+	sf::RectangleShape highlight(sf::Vector2f(cellWidth, cellHeight));
+	highlight.setFillColor(sf::Color::Transparent);
+	highlight.setOutlineThickness(-3.f);
+
+	//Si el jugador actual es el 0 se resalta rojo, si no amarillo
+	if (this->currentPlayer == 0) {
+		highlight.setOutlineColor(sf::Color::Red);
+	}
+	else {
+		highlight.setOutlineColor(sf::Color::Yellow);
+	}
+
+	//Obtenemos el tanque 0 y 1 de los jugadores
+	Tank* tank1 = this->players[this->currentPlayer]->getTank(0);
+	Tank* tank2 = this->players[this->currentPlayer]->getTank(1);
+
+	//Ponemos el highlight en donde estan los tanques
+	highlight.setPosition(tank1->getCurrentCol() * cellWidth, tank1->getCurrentRow() * cellHeight);
+	this->windowGame->draw(highlight);
+
+	highlight.setPosition(tank2->getCurrentCol() * cellWidth, tank2->getCurrentRow() * cellHeight);
+	this->windowGame->draw(highlight);
+
 }
 
 

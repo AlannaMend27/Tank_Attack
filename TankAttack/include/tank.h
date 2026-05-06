@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-
+#include "GameConfig.h"
 class Tank {
 private:
 

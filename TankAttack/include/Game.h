@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include "map.h"
 #include "tank.h"
+#include "GameConfig.h"
+#include "Player.h"
 
 enum class GameState {
 	menu,
@@ -52,10 +54,12 @@ private:
 	Map* gameMap;
 
 	// tanques
-	Tank* tanks[4];
-
-
-
+	Tank* tanks[4] = { nullptr, nullptr, nullptr, nullptr };
+	
+	// jugadores 
+	Player* players[2] = {nullptr, nullptr};
+	//0 j1,1 j2
+	int currentPlayer = 0;
 
 public:
 	// constructor y destructor
@@ -80,6 +84,7 @@ public:
 	void initGame();
 	void updateGame();
 	void renderGame();
+	void switchTurn();
 
 
 

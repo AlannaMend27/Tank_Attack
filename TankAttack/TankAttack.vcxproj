@@ -134,17 +134,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="include\Tank.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\map.cpp" />
+    <ClCompile Include="src\Player.cpp" />
+    <ClCompile Include="src\Tank.cpp" />
     <ClCompile Include="structures\grafo.cpp" />
     <ClCompile Include="structures\Queue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Game.h" />
+    <ClInclude Include="include\GameConfig.h" />
     <ClInclude Include="include\grafo.h" />
     <ClInclude Include="include\map.h" />
+    <ClInclude Include="include\Player.h" />
     <ClInclude Include="include\queue.h" />
     <ClInclude Include="include\tank.h" />
   </ItemGroup>

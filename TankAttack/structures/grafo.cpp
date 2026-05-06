@@ -1,5 +1,5 @@
 #include "grafo.h"
-
+#include "GameConfig.h"
 // destructor y constructor clase nodo
 Node::Node(int weigthNode)
 {

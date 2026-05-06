@@ -1,6 +1,7 @@
 #pragma once
 #include "grafo.h"
 #include "queue.h"	
+#include "GameConfig.h"
 #include <SFML/Graphics.hpp>
 
 class Map {
@@ -12,8 +13,7 @@ private:
 	int size;
 
 	// cambiar tamano de la matriz
-	static const int mapSize = 15;
-	bool mapMatrix [mapSize][mapSize];
+	bool mapMatrix [MAP_SIZE][MAP_SIZE];
 
 	// interfaz del mapa
 	

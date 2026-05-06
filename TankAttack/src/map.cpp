@@ -34,7 +34,7 @@ void Map::initMap()
 
 void Map::createMap()
 {
-	this->graphMap = new graph(this->size);
+	this->graphMap = new graph(MAP_SIZE * MAP_SIZE);
 	this->generateObstacles();
 
 	//Si no todos los nodos son accesibles, genere los obstaculos de nuevo, hasta que si
@@ -52,21 +52,20 @@ void Map::generateObstacles()
 {
 
 	//borramos la matriz, por si los nodos no son acessibles y se regeneran los obstaculos. es decir creamos un nuevo mapa aleatorio
-	for (int i = 0; i < this->mapSize; i++) {
-		for (int j = 0; j < this->mapSize; j++) {
+	for (int i = 0; i < MAP_SIZE; i++) {
+		for (int j = 0; j < MAP_SIZE; j++) {
 			this->mapMatrix[i][j] = 0;
 		}
 	}
 
-	//Numero de muros y los restantes por colocar
-	int totalWalls = 30;
+	//Numero de muros colocados por el momento
 	int wallsPlaced = 0;
 
-	while (wallsPlaced < totalWalls) {
+	while (wallsPlaced < TOTAL_WALLS) {
 
 		// se colocan los muros aleatoriamente
-		int randomRow = rand() % this->mapSize;
-		int randomCol = rand() % this->mapSize;
+		int randomRow = rand() % MAP_SIZE;
+		int randomCol = rand() % MAP_SIZE;
 
 		// solo coloca el muro si no es una esquina y si esta libre, si ya hay un muro ahi intenta otra posicion
 		if (!this->isCorner(randomRow, randomCol) && this->mapMatrix[randomRow][randomCol] == 0) {
@@ -83,8 +82,8 @@ void Map::generateObstacles()
 void Map::generateGraph()
 {
 	// este metodo recorre las celdas de la matriz y crea cada nodo y sus conexiones 
-	for (int i = 0; i < this->mapSize; i++) {
-		for (int j = 0; j < this->mapSize; j++) {
+	for (int i = 0; i < MAP_SIZE; i++) {
+		for (int j = 0; j < MAP_SIZE; j++) {
 			if (mapMatrix[i][j] == 0) {
 				// ver si hay vecinos en los bordes
 				// se revisan los vecinos sumando estos pares a la matriz (-1,0) es arriba, (1,0) es abajo,(0,-1) esizquierda ,(0,1) es derecha 
@@ -114,7 +113,7 @@ void Map::generateGraph()
 int Map::toIndex(int row, int col)
 {
 	// convierte un indice de la matriz del mapa a un indice en la matriz de adyacencia del grafo
-	return row * this->mapSize + col;
+	return row * MAP_SIZE + col;
 
 	// notita: ya esta el inverso :D
 
@@ -124,12 +123,12 @@ int Map::toIndex(int row, int col)
 
 int Map::toRow(int index)
 {
-	return index / this->mapSize;
+	return index / MAP_SIZE;
 }
 
 int Map::toCol(int index) 
 {
-	return index % this->mapSize;
+	return index % MAP_SIZE;
 }
 
 
@@ -138,7 +137,7 @@ int Map::toCol(int index)
 bool Map::isPositionValid(int row, int col) 
 {
 	//Verifica si la la fila/col no es negativa y si no es mayor al tamanio del mapa
-	if (row >= 0 && row < this->mapSize && col >= 0 && col < this->mapSize) {
+	if (row >= 0 && row < MAP_SIZE && col >= 0 && col < MAP_SIZE) {
 		return true;
 	}
 	else {
@@ -147,11 +146,11 @@ bool Map::isPositionValid(int row, int col)
 }
 
 
-//Para proteger los nodos de las esquinas (para los tanques al inicio), dependiendo del tamanio del mapa los 14 se cambian
+//Para proteger los nodos de las esquinas (para los tanques al inicio)
 
 bool Map::isCorner(int row, int col) 
 {
-	if ((row == 0 && col == 0) || (row == 0 && col == 14) || (row == 14 && col == 0) || (row == 14 && col == 14)) {
+	if ((row == 0 && col == 0) || (row == 0 && col == MAP_SIZE - 1) || (row == MAP_SIZE -1  && col == 0) || (row == MAP_SIZE - 1 && col == MAP_SIZE - 1)) {
 		return true;
 	}
 	else {
@@ -164,7 +163,7 @@ bool Map::isEveryNodeAccessible()
 	//El "BFS" implementado aqui es solo de verificacion, el de los tanques retorna la posicion, ese es diferente
 
 	//Creamos una matriz empezada todo en falso, es para decir si ya fuimos a esa posicion, la cola es para los que faltan por visitar
-	bool visited[this->mapSize][this->mapSize] = {};
+	bool visited[MAP_SIZE][MAP_SIZE] = {};
 	Queue BFSQueue;
 
 	//Se arranca a visitar desde la esquina superior izquiera (0,0) y se marca como visitada
@@ -214,8 +213,8 @@ bool Map::isEveryNodeAccessible()
 	retorna false si e el caso, si no true, esto por que a la hora de crear el mapa
 	si este metodo es falso se generan muros aleatorios hasta que sea true
 	*/
-	for (int i = 0; i < mapSize; i++) {
-		for (int j = 0; j < mapSize; j++) {
+	for (int i = 0; i < MAP_SIZE; i++) {
+		for (int j = 0; j < MAP_SIZE; j++) {
 			if (this->mapMatrix[i][j] == 0 && !visited[i][j]) {
 				return false;
 			}
@@ -235,13 +234,13 @@ void Map::renderMap()
 	this->window->draw(this->backgroundMap);
 
 	// obtener tamano de celdas y escalar muros a este tamano
-	float cellWidth = (float)this->windowSize.x / this->mapSize;
-	float cellHeight = (float)this->windowSize.y / this->mapSize;
+	float cellWidth = (float)this->windowSize.x / MAP_SIZE;
+	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
 
 	this->wallMap.setScale(cellWidth / this->wall.getSize().x, cellHeight / this->wall.getSize().y);
 
-	for (int i = 0; i < this->mapSize; i++) {
-		for (int j = 0; j < this->mapSize; j++) {
+	for (int i = 0; i < MAP_SIZE; i++) {
+		for (int j = 0; j < MAP_SIZE; j++) {
 			if (this->mapMatrix[i][j] == 1) {
 				this->wallMap.setPosition(
 					j * cellWidth,
