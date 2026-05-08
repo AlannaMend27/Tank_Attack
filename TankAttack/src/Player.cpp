@@ -33,8 +33,24 @@ void Player::setTurn(bool value)
 	this->isMyTurn = value;
 }
 
+void Player::selectTank(Tank* tank) 
+{
+	//Si ya esta seleccionado, quitarlo
+	if (this->selectedTank == tank) {
+		this->selectedTank = nullptr;
+		return;
+	}
+
+	this->selectedTank = tank;
+}
+
 //Para saber donde esta el tanque 1 o 2 del jugador x
 Tank* Player::getTank(int index) 
 {
 	return this->tanks[index];
+}
+
+Tank* Player::getSelectedTank()
+{
+	return this->selectedTank;
 }

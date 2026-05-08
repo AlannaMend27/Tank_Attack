@@ -30,11 +30,11 @@ private:
 
 	void generateObstacles();
 	void generateGraph();
+
 	int toIndex(int row, int col);
 	int toRow(int index);
 	int toCol(int index);
 
-	bool isPositionValid(int row, int col);
 	bool isCorner(int row, int col);
 	bool isEveryNodeAccessible();
 
@@ -50,5 +50,8 @@ public:
 	void initMap();
 	void createMap();
 	void drawMap();
+
+	bool isPositionValid(int row, int col);
+	bool isCellFree(int row, int col);
 
 };

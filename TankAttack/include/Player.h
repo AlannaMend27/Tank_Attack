@@ -9,6 +9,9 @@ private:
 	bool isMyTurn;
 	Tank* tanks[2];
 
+	//Tanque seleccionado actualmente
+	Tank* selectedTank = nullptr; 
+
 public:
 	// constructor y destructor
 	Player(int playerID, Tank* tank1, Tank* tank2, bool isMyTurn);
@@ -19,7 +22,9 @@ public:
 
 	bool isItMyTurn();
 	void setTurn(bool value);
-
+	void selectTank(Tank* tank);
+		
 	Tank* getTank(int index);
+	Tank* getSelectedTank();
 
 };

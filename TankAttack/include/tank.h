@@ -29,4 +29,5 @@ public:
 	int getCurrentRow();
 	int getCurrentCol();
 
+	sf::FloatRect getArea();
 };

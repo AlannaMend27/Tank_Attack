@@ -254,6 +254,12 @@ void Map::renderMap()
 
 }
 
+//Este metodo sirve para render game, si la celda es libre, se puede mover/disparar con el tanque ahi
+bool Map::isCellFree(int row, int col)
+{
+	return this->mapMatrix[row][col] == 0;
+}
+
 //Publico para que pueda ser llamado
 void Map::drawMap() {
 

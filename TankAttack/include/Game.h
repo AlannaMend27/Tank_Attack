@@ -84,7 +84,11 @@ public:
 	void initGame();
 	void updateGame();
 	void renderGame();
+	void renderAvailableMove();
 	void switchTurn();
+	void TankSelection(sf::Vector2f mousePos);
+
+	bool isThereATank(int row, int col);
 
 
 

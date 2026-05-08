@@ -103,7 +103,10 @@ void Game::PollEvents() {
 					if (this->backButton.getGlobalBounds().contains(mousePos)) {
 						this->State = GameState::menu;
 					}
+					//Detecta si se selecciona un tanque
+					this->TankSelection(mousePos);
 				}
+				
 
 			}
 
@@ -300,11 +303,81 @@ void Game::switchTurn()
 	this->players[this->currentPlayer]->setTurn(true);
 }
 
+//Verifica si hay un tanque en la casilla
+bool Game::isThereATank(int row, int col) 
+{
+	//Si alguno de los 4 tanques esta en la posicion es true
+	for (int i = 0; i < 4; i++) {
+		if (this->tanks[i]->getCurrentRow() == row && this->tanks[i]->getCurrentCol() == col) {
+			return true;
+		}
+	}
+	return false;
+}
+
+//Verifica si el jugador hizo click en alguno de sus tanques
+void Game::TankSelection(sf::Vector2f mousePos) {
+
+	Tank* tank1 = this->players[this->currentPlayer]->getTank(0);
+	Tank* tank2 = this->players[this->currentPlayer]->getTank(1);
+
+	//Si el click es dentro del area del tanque 1/2 lo selecciona
+	if (tank1->getArea().contains(mousePos)) {
+		this->players[this->currentPlayer]->selectTank(tank1);
+	}
+	if (tank2->getArea().contains(mousePos)) {
+		this->players[this->currentPlayer]->selectTank(tank2);
+	}
+}
 
 void Game::updateGame()
 {
 	// en esta parte ira la logica del cambio de posicion de tanques y todo eso 
 	// NOTA: Si se le quiere poner que el boton volver tenga la misma animacion va aqui
+}
+
+//Renderiza la zona disponible/ no disponible
+void Game::renderAvailableMove() 
+{
+
+	Tank* selectedTank = this->players[this->currentPlayer]->getSelectedTank();
+
+	//Sin esto crashea, es por si no hay tanque seleccionado
+	if (selectedTank == nullptr) {
+		return;
+	}
+
+	//Obtenemos el tamanio de cada celda
+	float cellWidth = (float)this->windowSize.x / MAP_SIZE;
+	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
+
+	//Posicion del tanque que se selecciona
+	int tankRow = selectedTank->getCurrentRow();
+	int tankCol = selectedTank->getCurrentCol();
+
+	// esta es la celda que se va a colorear si esta libre/bloqueada
+	sf::RectangleShape cellToColor(sf::Vector2f(cellWidth, cellHeight));
+	cellToColor.setOutlineThickness(-1);
+	cellToColor.setOutlineColor(sf::Color(255, 255, 255, 150));
+
+	//Recorre el radio alrededor del tanque segun MAX_MOVE_RADIUS
+	for (int row = tankRow - MAX_MOVE_RADIUS; row <= tankRow + MAX_MOVE_RADIUS;row++) {
+		for (int col = tankCol - MAX_MOVE_RADIUS; col <= tankCol + MAX_MOVE_RADIUS; col++) {
+
+			if (this->gameMap->isPositionValid(row, col)) {
+				//Si esta libre, en blanco
+				if (this->gameMap->isCellFree(row, col) && !this->isThereATank(row, col)) {
+					cellToColor.setFillColor(sf::Color(255, 255, 255, 80));
+				} 
+				else {
+					//Oscuro si no
+					cellToColor.setFillColor(sf::Color(0, 0, 0, 120)); 
+				}
+				cellToColor.setPosition(col * cellWidth, row * cellHeight);
+				this->windowGame->draw(cellToColor);
+			}
+		}
+	}
 }
 
 void Game::renderGame()
@@ -320,7 +393,7 @@ void Game::renderGame()
 	this->tanks[2]->createTank();
 	this->tanks[3]->createTank();
 
-	// NOTA : ESTO ES POR MIENTRAS: ES PARA RESALTAR LOS TANQUES SEGUN EL TURNO LINEA 324-347
+	// NOTA : ESTO ES POR MIENTRAS: ES PARA RESALTAR LOS TANQUES SEGUN EL TURNO LINEA 394-419
 	float cellWidth = (float)this->windowSize.x / MAP_SIZE;
 	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
 
@@ -347,9 +420,8 @@ void Game::renderGame()
 	highlight.setPosition(tank2->getCurrentCol() * cellWidth, tank2->getCurrentRow() * cellHeight);
 	this->windowGame->draw(highlight);
 
+	this->renderAvailableMove();
 }
-
-
 
 // metodos de acceso a variables privadas
 

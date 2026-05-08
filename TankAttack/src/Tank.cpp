@@ -63,3 +63,10 @@ int Tank::getCurrentCol()
 {
 	return this->currentCol;
 }
+
+//Esto obtiene los limites del tanque en un FloatRect para hacer .getBounds, es lo mismo que usan los botones
+//Sirve para el rango de seleccion de un tanque al hacer click
+sf::FloatRect Tank::getArea() 
+{
+	return this->tankSprite.getGlobalBounds();
+}
