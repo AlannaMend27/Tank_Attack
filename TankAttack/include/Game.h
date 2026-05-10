@@ -4,6 +4,7 @@
 #include "tank.h"
 #include "GameConfig.h"
 #include "Player.h"
+#include "dijkstra.h"
 
 enum class GameState {
 	menu,
@@ -55,11 +56,25 @@ private:
 
 	// tanques
 	Tank* tanks[4] = { nullptr, nullptr, nullptr, nullptr };
+	Tank* activeTank = nullptr;
 	
 	// jugadores 
 	Player* players[2] = {nullptr, nullptr};
+
 	//0 j1,1 j2
 	int currentPlayer = 0;
+
+
+	// posicion de los clicks en la matriz
+	int mouseRow;
+	int mouseCol;
+
+	// alto y ancho de una celda
+	float cellWidth;
+	float cellHeight;
+
+	// algoritmos
+	Dijkstra* AlgDijkstra;
 
 public:
 	// constructor y destructor
@@ -87,6 +102,9 @@ public:
 	void renderAvailableMove();
 	void switchTurn();
 	void TankSelection(sf::Vector2f mousePos);
+	void moveTank(sf::Vector2f mousePos);
+	void mouseClickToCoords(sf::Vector2f mousePos, int& row, int& col);
+	void AnimateMoveTank();
 
 	bool isThereATank(int row, int col);
 

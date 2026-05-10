@@ -36,6 +36,9 @@
     <ClCompile Include="src\Tank.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="structures\Dijkstra.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Game.h">
@@ -57,6 +60,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="include\GameConfig.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dijkstra.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

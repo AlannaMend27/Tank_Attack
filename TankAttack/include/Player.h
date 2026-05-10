@@ -23,6 +23,7 @@ public:
 	bool isItMyTurn();
 	void setTurn(bool value);
 	void selectTank(Tank* tank);
+	void deselectTank();
 		
 	Tank* getTank(int index);
 	Tank* getSelectedTank();

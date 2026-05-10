@@ -98,13 +98,21 @@ void Game::PollEvents() {
 						break;
 					}
 				}
-				//Boton volver
+				
 				if (this->State == GameState::playing) {
+					// ver si esta cerca del boton volver
 					if (this->backButton.getGlobalBounds().contains(mousePos)) {
 						this->State = GameState::menu;
 					}
-					//Detecta si se selecciona un tanque
-					this->TankSelection(mousePos);
+
+					// si no hay tanque seleccionado aún, intentar seleccionar
+					if (this->players[this->currentPlayer]->getSelectedTank() == nullptr) {
+						this->TankSelection(mousePos);
+					}
+					else {
+						// ya hay tanque seleccionado, este click es el destino
+						this->moveTank(mousePos);
+					}
 				}
 				
 
@@ -259,7 +267,9 @@ void Game::initGame()
 	if (!this->GameInit) {
 		//Boton de volver
 		this->backButton.setSize(sf::Vector2f(200, 60));
-		this->backButton.setFillColor(sf::Color(0, 100, 200));
+		this->backButton.setFillColor(sf::Color(9, 110, 150));
+		this->backButton.setOutlineColor(sf::Color(82, 206, 255));
+		this->backButton.setOutlineThickness(-5.f);
 		this->backButton.setPosition(860, 20);
 
 		//Texto del boton volver
@@ -267,13 +277,13 @@ void Game::initGame()
 		this->backText.setString("Volver");
 		this->backText.setCharacterSize(30);
 		this->backText.setFillColor(sf::Color::White);
-		this->backText.setPosition(900, 30);
+		this->backText.setPosition(905, 30);
 
 		//Tanques en las esquinas (MAP_SIZE -1)
-		this->tanks[0] = new Tank(0, 0, this->windowSize, this->windowGame, "assets/textures/tank_0.png");
-		this->tanks[1] = new Tank(MAP_SIZE - 1, 0, this->windowSize, this->windowGame, "assets/textures/tank_1.png");
-		this->tanks[2] = new Tank(0, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_2.png");
-		this->tanks[3] = new Tank(MAP_SIZE - 1, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_3.png");
+		this->tanks[0] = new Tank(0, 0, this->windowSize, this->windowGame, "assets/textures/tank_0.png", 0);
+		this->tanks[1] = new Tank(MAP_SIZE - 1, 0, this->windowSize, this->windowGame, "assets/textures/tank_1.png", 1);
+		this->tanks[2] = new Tank(0, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_2.png",2);
+		this->tanks[3] = new Tank(MAP_SIZE - 1, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_3.png", 3);
 
 		//Jugadores, el 1 empieza y tiene los tanques 0 y 1 el jugador 2, tiene los tanques 2 y 3
 		this->players[0] = new Player(1, this->tanks[0], this->tanks[1], true);
@@ -282,6 +292,14 @@ void Game::initGame()
 
 		// actualizar bandera
 		this->GameInit = true;
+
+		// variables que guardaran la posicion del mouse
+		this->mouseRow = 0;
+		this->mouseCol = 0;
+
+		//ancho y alto de las celdas
+		this->cellWidth = (float)this->windowSize.x / MAP_SIZE;
+		this->cellHeight = (float)this->windowSize.y / MAP_SIZE;
 	}
 	//Esto siempre para que siempre se genere un mapa nuevo
 	this->gameMap->createMap();
@@ -330,10 +348,126 @@ void Game::TankSelection(sf::Vector2f mousePos) {
 	}
 }
 
+void Game::mouseClickToCoords(sf::Vector2f mousePos, int& row, int& col)
+{
+
+	// guardamos la posicion del mouse a posicion en matriz
+	row = (int)(mousePos.y / this->cellHeight);
+	col = (int)(mousePos.x / this->cellWidth);
+	
+}
+
+void Game::moveTank(sf::Vector2f mousePos)
+{
+
+	// convertir pixeles a coordenadas de la matriz
+	int mouseRow;
+	int mouseCol;
+	this->mouseClickToCoords(mousePos, mouseRow, mouseCol);
+
+	// verificar que la celda no sea uun obstaculo
+	if (!this->gameMap->isCellFree(mouseRow, mouseCol)) {
+		// aqui quiero agregar un aviso de pq no se pudo mover el tanque ahi
+		return;
+	}
+	// verificar que no haya un tanque en la posicion
+	if (this->isThereATank(mouseRow, mouseCol)) {
+		return;
+	}
+
+	// tanque seleccionado
+	Tank* tankToMove = this->players[this->currentPlayer]->getSelectedTank();
+	this->activeTank = tankToMove;
+
+	// convertir indices del mapa a indices en la matriz de adyacencia del grafo
+	int currentIndex = this->gameMap->toIndex(tankToMove->getCurrentRow(), tankToMove->getCurrentCol());
+	int GoalIndex = this->gameMap->toIndex(mouseRow, mouseCol);
+
+	// llamar a dijkstra, obtener el camino y el tamanio del camino
+	this->AlgDijkstra = new Dijkstra(this->gameMap->getAdjMatrix());
+	int* path = this->AlgDijkstra->DijkstraAlgorithm(currentIndex, GoalIndex);
+	int sizeOfPath = this->AlgDijkstra->getPathSize();
+
+	// si el camino es inalcanzable
+	if (path == nullptr) {
+		return;
+	}
+
+	// establecer la ruta a seguir del tanque
+	tankToMove->setPathToGo(path, sizeOfPath);
+
+	// reiniciar tanque seleccionado(turnos)
+	this->players[this->currentPlayer]->deselectTank();
+
+}
+
+void Game::AnimateMoveTank()
+{
+	int* path = this->activeTank->getPathToGo();
+	
+	// calcular cual es la celda destino y su posicion en pixeles
+	int goalCell = path[this->activeTank->getPathIndex()];
+	int goalRow = this->gameMap->toRow(goalCell);
+	int goalCol = this->gameMap->toCol(goalCell);
+
+	// convertir la fila y columna a pixeless
+	float goalX = goalCol * this->cellWidth;
+	float goalY = goalRow * this->cellHeight;
+
+	// obtener la posición actual del sprite en píxeles
+	sf::Vector2f currentPos = this->activeTank->getSpritePosition();
+
+	// calcular la diferencia entre la posición actual y el destino
+	float dx = goalX - currentPos.x;
+	float dy = goalY - currentPos.y;
+
+	// calcular la distancia al destino con distancia euclidiana
+	float distance = std::sqrt(dx * dx + dy * dy);
+
+	if (distance < TANK_SPEED) {
+		// colocar el sprite en la celda
+		this->activeTank->setPosition(goalX, goalY);
+
+		// actualizar posicion logica
+		this -> activeTank->setCurrentRow(goalRow);
+		this->activeTank->setCurrentCol(goalCol);
+
+		// avanzar al siguiente paso del path
+		this->activeTank->incrementPathIndex();
+
+		// verificar si ya se recorrio todo el path
+		if (this->activeTank->getPathIndex() >= this->activeTank->GetPathSize()) {
+			this->activeTank->setIsMoving(false);
+			this->activeTank->clearPath();
+		}
+
+	}
+	else {
+
+		// obtener direccion movimiento
+		// dividir entre la distancia convierte dx y dy a valores entre -1 y 1
+		float normalX = dx / distance;
+		float normalY = dy / distance;
+
+		// mover el sprite TANK_SPEED píxeles en la dirección correcta
+		this->activeTank->moveSprite(normalX * TANK_SPEED, normalY * TANK_SPEED);
+
+	}
+
+}
+
+
+
 void Game::updateGame()
 {
-	// en esta parte ira la logica del cambio de posicion de tanques y todo eso 
-	// NOTA: Si se le quiere poner que el boton volver tenga la misma animacion va aqui
+	if (this->activeTank != nullptr && this->activeTank->getIsMoving()) {
+		this->AnimateMoveTank();
+	}
+	if (this->activeTank != nullptr && !this->activeTank->getIsMoving()) {
+		this->activeTank = nullptr;
+		// aqui puede ir la logica de cambiar turnos
+	}
+	
 }
 
 //Renderiza la zona disponible/ no disponible
@@ -347,16 +481,12 @@ void Game::renderAvailableMove()
 		return;
 	}
 
-	//Obtenemos el tamanio de cada celda
-	float cellWidth = (float)this->windowSize.x / MAP_SIZE;
-	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
-
 	//Posicion del tanque que se selecciona
 	int tankRow = selectedTank->getCurrentRow();
 	int tankCol = selectedTank->getCurrentCol();
 
 	// esta es la celda que se va a colorear si esta libre/bloqueada
-	sf::RectangleShape cellToColor(sf::Vector2f(cellWidth, cellHeight));
+	sf::RectangleShape cellToColor(sf::Vector2f(this->cellWidth, this->cellHeight));
 	cellToColor.setOutlineThickness(-1);
 	cellToColor.setOutlineColor(sf::Color(255, 255, 255, 150));
 
@@ -367,13 +497,13 @@ void Game::renderAvailableMove()
 			if (this->gameMap->isPositionValid(row, col)) {
 				//Si esta libre, en blanco
 				if (this->gameMap->isCellFree(row, col) && !this->isThereATank(row, col)) {
-					cellToColor.setFillColor(sf::Color(255, 255, 255, 80));
+					cellToColor.setFillColor(sf::Color(175, 238, 238, 80));
 				} 
 				else {
 					//Oscuro si no
-					cellToColor.setFillColor(sf::Color(0, 0, 0, 120)); 
+					cellToColor.setFillColor(sf::Color(0, 0, 0, 50)); 
 				}
-				cellToColor.setPosition(col * cellWidth, row * cellHeight);
+				cellToColor.setPosition(col * this->cellWidth, row * this->cellHeight);
 				this->windowGame->draw(cellToColor);
 			}
 		}

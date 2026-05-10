@@ -5,6 +5,7 @@
 
 // constructor y destructor
 Map::Map(int n, sf::RenderWindow* windowGame, sf::Vector2u sizeWindow) {
+	this->graphMap = nullptr;
 	this->size = n;
 	this->window = windowGame;
 	this->windowSize = sizeWindow;
@@ -90,18 +91,18 @@ void Map::generateGraph()
 				int rows[4] = { -1,1,0,0};
 				int columns[4] = { 0,0,-1,1};
 
+				// crear nodo en hash map que almacena todos los nodos del grafo
+				this->graphMap->createNode(1, toIndex(i, j));
+
 				// calcular donde estarian los vecinos
 				for (int k = 0; k < 4; k++) {
 					int newRow = rows[k] + i;
 					int newCol = columns[k] + j;
 
-					// calcular si las posiciones son validas
-					if (this->isPositionValid(newRow, newCol)) {
-						// si la posicion es valida y la celda esta libre, agregar arista
-						if (this->mapMatrix[i][j] == 0) {
-							this->graphMap->createEdge(toIndex(i,j) , toIndex(newRow, newCol), 1);
-							this->graphMap->createNode(1,toIndex(i,j));
-						}
+					// calcular si las posiciones son validas y si la celda a visitar no tiene obstaculo
+					if (this->isPositionValid(newRow, newCol) && this->mapMatrix[newRow][newCol] == 0) {
+						// agregar arista
+						this->graphMap->createEdge(toIndex(i,j) , toIndex(newRow, newCol), 1);
 					}
 				}
 			}
@@ -115,7 +116,7 @@ int Map::toIndex(int row, int col)
 	// convierte un indice de la matriz del mapa a un indice en la matriz de adyacencia del grafo
 	return row * MAP_SIZE + col;
 
-	// notita: ya esta el inverso :D
+	// notita: ya esta el inverso :D , bieeeeeen :)
 
 }
 
@@ -180,7 +181,7 @@ bool Map::isEveryNodeAccessible()
 	- Luego de tener las posiciones vamos a las 4 posiciones las de los arreglos Rows y Cols
 	- Mientras se recorre el for hay un if que verifica lo siguiente
 		1. isPositionValid() -> Si no se sale del mapa o bien si la posicion no es negativa
-		2. !visited sis no lo heos visitado aun
+		2. !visited sis no lo hemos visitado aun
 		3. mapMatrix == 0 es una celda libre no muro
 	- En caso de que todo lo anterior sea true, agregamos la posicion que se puede visitar 
 	- Hacemos lo mismo hasta que la cola este vacia
@@ -259,6 +260,14 @@ bool Map::isCellFree(int row, int col)
 {
 	return this->mapMatrix[row][col] == 0;
 }
+
+const int* const* Map::getAdjMatrix() const
+{
+	return this->graphMap->getMatriz();
+}
+
+// metodo que devuleve la matriz de adyacencia del grafo
+
 
 //Publico para que pueda ser llamado
 void Map::drawMap() {

@@ -31,10 +31,6 @@ private:
 	void generateObstacles();
 	void generateGraph();
 
-	int toIndex(int row, int col);
-	int toRow(int index);
-	int toCol(int index);
-
 	bool isCorner(int row, int col);
 	bool isEveryNodeAccessible();
 
@@ -53,5 +49,11 @@ public:
 
 	bool isPositionValid(int row, int col);
 	bool isCellFree(int row, int col);
+	const int* const* getAdjMatrix() const;
+
+	// convierten indices de la matriz del juego a la matriz del grafo y viceversa
+	int toIndex(int row, int col);
+	int toRow(int index);
+	int toCol(int index);
 
 };

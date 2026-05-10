@@ -1,7 +1,8 @@
 #include "tank.h"
+#include <iostream>
 
 //Constructor y destructor
-Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, std::string texturePath)
+Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, std::string texturePath, int id)
 {
 	//Posicion logica del tanque
 	this->currentRow = row;
@@ -10,15 +11,31 @@ Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, 
 	//Para ajustar el tamanio 
 	this->windowSize = windowSize;
 	this->window = window;
-
 	this->texturePath = texturePath;
+
+	this->cellHeight = (float)this->windowSize.y / MAP_SIZE;
+	this->cellWidth = (float)this->windowSize.x / MAP_SIZE;
+
+	// posicion visual (para movimiento mientras no se ha llegado al destino para establecer la posicion logica)
+	this->visualX = this->currentCol * this->cellWidth;
+	this->visualY = this->currentRow * this->cellHeight;
+
+	// movimiento del tanque 
+	this->pathToGo = nullptr;
+	this->isMoving = false;
+	this->pathIndex = -1;
+	this->PathSize = 0;
+
+	// id tanque
+	this->tankID = id;
+
 	this->initTank();
 
 }
 
 Tank::~Tank()
 {
-
+	//
 }
 
 //Metodos privados
@@ -28,6 +45,12 @@ void Tank::initTank()
 	//cargar textura y asignar el sprite
 	this->tankTexture.loadFromFile(this->texturePath);
 	this->tankSprite.setTexture(this->tankTexture);
+
+	// inicializar posiciones visuales al crear el tanque
+	this->visualX = this->currentCol * this->cellWidth;
+	this->visualY = this->currentRow * this->cellHeight;
+	this->tankSprite.setPosition(this->visualX, this->visualY);
+
 
 }
 
@@ -39,10 +62,22 @@ void Tank::renderTank()
 
 	//se escala el tamano del sprite a las celdas
 	this->tankSprite.setScale(cellWidth / this->tankTexture.getSize().x, cellHeight / this->tankTexture.getSize().y);
-	this->tankSprite.setPosition(this->getCurrentCol() * cellWidth, this->getCurrentRow() * cellHeight);
-
 	this->window->draw(this->tankSprite);
 
+}
+
+// moveSprite actualiza la posición visual antes de llegar a una celda destino y actualizar la posicion logica
+void Tank::moveSprite(float dx, float dy) {
+	this->visualX += dx;
+	this->visualY += dy;
+	this->tankSprite.setPosition(this->visualX, this->visualY);
+}
+
+// setPosition también actualiza la posición visual definitiva cuando se llega a una celda destino
+void Tank::setPosition(float x, float y) {
+	this->visualX = x;
+	this->visualY = y;
+	this->tankSprite.setPosition(x, y);
 }
 
 //Metodos publicos
@@ -62,6 +97,78 @@ int Tank::getCurrentRow()
 int Tank::getCurrentCol()
 {
 	return this->currentCol;
+}
+
+// retorna el id que se le asigno al tanque, esto ya que en game se tiene un arreglo dinamico de tanques
+// faciliatr acceso
+int Tank::getId()
+{
+	return this->tankID;
+}
+
+// establece el camino a seguir y que nos vamos a mover con la variable isMoving
+void Tank::setPathToGo(int* path, int sizePath)
+{
+	this->pathToGo = path;
+	this->PathSize = sizePath;
+	this->pathIndex = 0;
+	this->isMoving = true;
+}
+
+int* Tank::getPathToGo()
+{
+	return this->pathToGo;
+}
+
+int Tank::GetPathSize()
+{
+	return this->PathSize;
+}
+
+void Tank::incrementPathIndex()
+{
+	this->pathIndex++;
+}
+
+int Tank::getPathIndex()
+{
+	return this->pathIndex;
+}
+
+
+
+bool Tank::getIsMoving()
+{
+	return this->isMoving;
+}
+
+void Tank::setIsMoving(bool value)
+{
+	this->isMoving = value;
+}
+
+sf::Vector2f Tank::getSpritePosition()
+{
+	return this->tankSprite.getPosition();
+}
+
+void Tank::setCurrentRow(int row)
+{
+	this->currentRow = row;
+}
+
+void Tank::setCurrentCol(int col)
+{
+	this->currentCol = col;
+}
+
+void Tank::clearPath()
+{
+	delete[] this->pathToGo;
+	this->pathToGo = nullptr;
+	this->pathIndex = 0;
+	this->PathSize = 0;
+
 }
 
 //Esto obtiene los limites del tanque en un FloatRect para hacer .getBounds, es lo mismo que usan los botones

@@ -44,6 +44,11 @@ void Player::selectTank(Tank* tank)
 	this->selectedTank = tank;
 }
 
+void Player::deselectTank()
+{
+	this->selectedTank = nullptr;
+}
+
 //Para saber donde esta el tanque 1 o 2 del jugador x
 Tank* Player::getTank(int index) 
 {
