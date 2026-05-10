@@ -59,6 +59,43 @@ void Tank::renderTank()
 	this->tankSprite.setScale(this->cellWidth / this->tankTexture.getSize().x, this->cellHeight / this->tankTexture.getSize().y);
 	this->window->draw(this->tankSprite);
 
+	if (this->pathToGo != nullptr && this->pathSize > 0) {
+		drawPath();
+	}
+
+}
+
+void Tank::drawPath()
+{
+	// metodo que dibuja el path que seguira el tanque
+	if (this->isMoving) {
+
+		sf::RectangleShape cellToColor(sf::Vector2f(this->cellWidth, this->cellHeight));
+
+		if (this->tankID == "amarillo" || this->tankID == "rosado") {
+			// el path sera marcado en amarillo
+			cellToColor.setOutlineThickness(-1);
+			cellToColor.setOutlineColor(sf::Color(255, 204, 0, 255));
+			cellToColor.setFillColor(sf::Color(255, 255, 153, 80));
+		}
+		else {
+			// el path sera marcado en celeste
+			cellToColor.setOutlineColor(sf::Color(0, 255, 255, 255)); 
+			cellToColor.setFillColor(sf::Color(0, 255, 255, 60));
+			cellToColor.setOutlineThickness(2);
+		}
+
+		for (int i = 0; i < this->pathSize; i++) {
+			// convertir posicion del path a filas y columnas
+			int row = this->pathToGo[i] / MAP_SIZE;
+			int col = this->pathToGo[i] % MAP_SIZE;
+
+			cellToColor.setPosition(col * this->cellWidth, row * this->cellHeight);
+			this->window->draw(cellToColor);
+		}
+
+	}
+
 }
 
 // METODOS PUBLICOS

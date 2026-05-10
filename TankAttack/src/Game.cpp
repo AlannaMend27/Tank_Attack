@@ -653,10 +653,10 @@ void Game::renderGame()
 
 	//Si el jugador actual es el 0 se resalta rojo, si no amarillo
 	if (this->currentPlayer == 0) {
-		highlight.setOutlineColor(sf::Color::Red);
+		highlight.setOutlineColor(sf::Color::Yellow);
 	}
 	else {
-		highlight.setOutlineColor(sf::Color::Yellow);
+		highlight.setOutlineColor(sf::Color(0, 255, 255, 255));
 	}
 
 	//Obtenemos el tanque 0 y 1 de los jugadores

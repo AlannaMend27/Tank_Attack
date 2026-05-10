@@ -30,6 +30,7 @@ private:
 	//metodos privados
 	void initTank();
 	void renderTank();
+	void drawPath();
 
 public:
 	//Constructor y destructor
@@ -56,6 +57,7 @@ public:
 	void setCurrentRow(int row);
 	void setCurrentCol(int col);
 	void clearPath();
+
 
 	sf::FloatRect getArea();
 };
