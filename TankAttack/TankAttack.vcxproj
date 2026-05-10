@@ -141,6 +141,7 @@
     <ClCompile Include="src\Tank.cpp" />
     <ClCompile Include="structures\Dijkstra.cpp" />
     <ClCompile Include="structures\grafo.cpp" />
+    <ClCompile Include="structures\LineOfSight.cpp" />
     <ClCompile Include="structures\Queue.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -148,6 +149,7 @@
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GameConfig.h" />
     <ClInclude Include="include\grafo.h" />
+    <ClInclude Include="include\lineOfSight.h" />
     <ClInclude Include="include\map.h" />
     <ClInclude Include="include\Player.h" />
     <ClInclude Include="include\queue.h" />

@@ -7,7 +7,7 @@ private:
 	//ATRIBUTOS
 	int currentRow;
 	int currentCol;
-	int tankID;
+	std::string tankID;
 
 	// atributos de la ventana
 	sf::Vector2u windowSize;
@@ -21,7 +21,7 @@ private:
 
 	// movimiento del tanque
 	int* pathToGo;
-	int PathSize;
+	int pathSize;
 	int pathIndex;
 	bool isMoving;
 	float visualX;
@@ -33,14 +33,14 @@ private:
 
 public:
 	//Constructor y destructor
-	Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, std::string texturePath, int id);
+	Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, std::string texturePath, std::string id);
 	~Tank();
 
 	//Metodos publicos
 	void createTank(); 
 	int getCurrentRow();
 	int getCurrentCol();
-	int getId();
+	std::string getId();
 
 	// metodos que establecer o devuelven atribuos utiles para el movimiento del tanque
 	void setPathToGo(int* path, int sisePath);

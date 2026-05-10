@@ -5,6 +5,7 @@
 #include "GameConfig.h"
 #include "Player.h"
 #include "dijkstra.h"
+#include "lineOfSight.h"
 
 enum class GameState {
 	menu,
@@ -73,8 +74,9 @@ private:
 	float cellWidth;
 	float cellHeight;
 
-	// algoritmos
+	// algoritmos de busqueda de camino mas corto
 	Dijkstra* AlgDijkstra;
+	LineOfSight* AlgLineOfSight;
 
 public:
 	// constructor y destructor
@@ -102,10 +104,15 @@ public:
 	void renderAvailableMove();
 	void switchTurn();
 	void TankSelection(sf::Vector2f mousePos);
-	void moveTank(sf::Vector2f mousePos);
 	void mouseClickToCoords(sf::Vector2f mousePos, int& row, int& col);
-	void AnimateMoveTank();
 
+	// metodos relacionados al movimiento de los tanques
+	void moveTank(sf::Vector2f mousePos);
+	void AnimateMoveTank();
+	void selectPathAlgorithm(int currentIndex, int GoalIndex);
+	void SetDijkstraPath(int currentIndex, int GoalIndex);
+	void SetLineOfSightPath(int currentIndex, int GoalIndex);
+	void randomMove(int& randomRow, int& randomCol,int goalRow, int goalCol);
 	bool isThereATank(int row, int col);
 
 

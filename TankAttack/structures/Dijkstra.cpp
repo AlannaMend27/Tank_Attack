@@ -42,32 +42,32 @@ int Dijkstra::MinorElement()
 	return menor;
 }
 
-	// este metodo recorre el camino para llegar del nodo destino al nodo inicial, es la parte final del algoritmo
-	int* Dijkstra::shortestPath()
-	{
-		// calcular cuentos nodos hay que recorrer antes de llegar al destino
-		int father = this->goalIndex;
-		// hasta que lleguemos al inicio que sería un nodo que no tenga padre asignado
-		while (father != -1) {
-			this->pathSize++;
-			father = previous[father];
-
-		}
-
-		this->path = new int[this->pathSize];
-		father = this->goalIndex;
-		// generar el camino (de nodo eta a actual)
-		for (int i = this->pathSize-1; i >= 0 ;i--) {
-			this->path[i] = father;
-			if (father != -1) {
-				father = this->previous[father];
-			}
-
-		}
-
-		return path;
+// este metodo recorre el camino para llegar del nodo destino al nodo inicial, es la parte final del algoritmo
+int* Dijkstra::shortestPath()
+{
+	// calcular cuentos nodos hay que recorrer antes de llegar al destino
+	int father = this->goalIndex;
+	// hasta que lleguemos al inicio que sería un nodo que no tenga padre asignado
+	while (father != -1) {
+		this->pathSize++;
+		father = previous[father];
 
 	}
+
+	this->path = new int[this->pathSize];
+	father = this->goalIndex;
+	// generar el camino (de nodo actual al destinol)
+	for (int i = this->pathSize-1; i >= 0 ;i--) {
+		this->path[i] = father;
+		if (father != -1) {
+			father = this->previous[father];
+		}
+
+	}
+	// retorna el camino desde el nodo inicial para llegar al destino
+	return path;
+
+}
 
 // METODOS PUBLICOS
 

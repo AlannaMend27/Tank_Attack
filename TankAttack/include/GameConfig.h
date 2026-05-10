@@ -14,6 +14,9 @@ const int TOTAL_WALLS = 30;
 // Maximo radio permitido para moverse con los tanques
 const int MAX_MOVE_RADIUS = 3;
 
+// Maximo radio en el que se puede realizar un movimiento aleatorio de caso de que no funcione linea vista
+const int RANDOM_MOVE_RADIUS = 3;
+
 // velocidad a la que se mueven los tanques (cantidad de pixeles que se mueve)
 const float TANK_SPEED = 1.0f;
 

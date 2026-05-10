@@ -5,6 +5,11 @@
 
 // constructor y destructor
 Map::Map(int n, sf::RenderWindow* windowGame, sf::Vector2u sizeWindow) {
+	// matriz del mapa
+	this->mapMatrix = new int* [MAP_SIZE];
+	for (int i = 0; i < MAP_SIZE; i++) {
+		this->mapMatrix[i] = new int[MAP_SIZE];
+	}
 	this->graphMap = nullptr;
 	this->size = n;
 	this->window = windowGame;
@@ -15,6 +20,11 @@ Map::Map(int n, sf::RenderWindow* windowGame, sf::Vector2u sizeWindow) {
 
 Map::~Map() {
 	delete graphMap;
+
+	for (int i = 0; i < MAP_SIZE; i++) {
+		delete[] mapMatrix[i]; 
+	}
+	delete[] mapMatrix;
 
 }
 
@@ -146,7 +156,6 @@ bool Map::isPositionValid(int row, int col)
 	}
 }
 
-
 //Para proteger los nodos de las esquinas (para los tanques al inicio)
 
 bool Map::isCorner(int row, int col) 
@@ -265,6 +274,13 @@ const int* const* Map::getAdjMatrix() const
 {
 	return this->graphMap->getMatriz();
 }
+
+int** Map::getMapMatrix() const
+{
+	return this->mapMatrix;
+}
+
+
 
 // metodo que devuleve la matriz de adyacencia del grafo
 

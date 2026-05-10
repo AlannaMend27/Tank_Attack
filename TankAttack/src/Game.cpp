@@ -29,6 +29,9 @@ Game::~Game()
 	delete this->players[0];
 	delete this->players[1];
 
+	delete this->AlgDijkstra;
+	delete this->AlgLineOfSight;
+
 }
 
 // metodos privados
@@ -280,10 +283,10 @@ void Game::initGame()
 		this->backText.setPosition(905, 30);
 
 		//Tanques en las esquinas (MAP_SIZE -1)
-		this->tanks[0] = new Tank(0, 0, this->windowSize, this->windowGame, "assets/textures/tank_0.png", 0);
-		this->tanks[1] = new Tank(MAP_SIZE - 1, 0, this->windowSize, this->windowGame, "assets/textures/tank_1.png", 1);
-		this->tanks[2] = new Tank(0, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_2.png",2);
-		this->tanks[3] = new Tank(MAP_SIZE - 1, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_3.png", 3);
+		this->tanks[0] = new Tank(0, 0, this->windowSize, this->windowGame, "assets/textures/tank_0.png", "rosado");
+		this->tanks[1] = new Tank(MAP_SIZE - 1, 0, this->windowSize, this->windowGame, "assets/textures/tank_1.png", "amarillo");
+		this->tanks[2] = new Tank(0, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_2.png","azul");
+		this->tanks[3] = new Tank(MAP_SIZE - 1, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_3.png", "rojo");
 
 		//Jugadores, el 1 empieza y tiene los tanques 0 y 1 el jugador 2, tiene los tanques 2 y 3
 		this->players[0] = new Player(1, this->tanks[0], this->tanks[1], true);
@@ -300,6 +303,10 @@ void Game::initGame()
 		//ancho y alto de las celdas
 		this->cellWidth = (float)this->windowSize.x / MAP_SIZE;
 		this->cellHeight = (float)this->windowSize.y / MAP_SIZE;
+
+		// punteros de algoritmos
+		this->AlgDijkstra = nullptr;
+		this->AlgLineOfSight = nullptr;
 	}
 	//Esto siempre para que siempre se genere un mapa nuevo
 	this->gameMap->createMap();
@@ -359,7 +366,6 @@ void Game::mouseClickToCoords(sf::Vector2f mousePos, int& row, int& col)
 
 void Game::moveTank(sf::Vector2f mousePos)
 {
-
 	// convertir pixeles a coordenadas de la matriz
 	int mouseRow;
 	int mouseCol;
@@ -375,7 +381,7 @@ void Game::moveTank(sf::Vector2f mousePos)
 		return;
 	}
 
-	// tanque seleccionado
+	// obtener tanque seleccionado
 	Tank* tankToMove = this->players[this->currentPlayer]->getSelectedTank();
 	this->activeTank = tankToMove;
 
@@ -383,22 +389,11 @@ void Game::moveTank(sf::Vector2f mousePos)
 	int currentIndex = this->gameMap->toIndex(tankToMove->getCurrentRow(), tankToMove->getCurrentCol());
 	int GoalIndex = this->gameMap->toIndex(mouseRow, mouseCol);
 
-	// llamar a dijkstra, obtener el camino y el tamanio del camino
-	this->AlgDijkstra = new Dijkstra(this->gameMap->getAdjMatrix());
-	int* path = this->AlgDijkstra->DijkstraAlgorithm(currentIndex, GoalIndex);
-	int sizeOfPath = this->AlgDijkstra->getPathSize();
-
-	// si el camino es inalcanzable
-	if (path == nullptr) {
-		return;
-	}
-
-	// establecer la ruta a seguir del tanque
-	tankToMove->setPathToGo(path, sizeOfPath);
+	//selecciona el algoritmo a utilizar de acuerdo al color del tanque y se lo da a this->activeTank
+	this->selectPathAlgorithm(currentIndex, GoalIndex);
 
 	// reiniciar tanque seleccionado(turnos)
 	this->players[this->currentPlayer]->deselectTank();
-
 }
 
 void Game::AnimateMoveTank()
@@ -414,10 +409,8 @@ void Game::AnimateMoveTank()
 	float goalX = goalCol * this->cellWidth;
 	float goalY = goalRow * this->cellHeight;
 
-	// obtener la posición actual del sprite en píxeles
-	sf::Vector2f currentPos = this->activeTank->getSpritePosition();
-
 	// calcular la diferencia entre la posición actual y el destino
+	sf::Vector2f currentPos = this->activeTank->getSpritePosition();
 	float dx = goalX - currentPos.x;
 	float dy = goalY - currentPos.y;
 
@@ -425,14 +418,10 @@ void Game::AnimateMoveTank()
 	float distance = std::sqrt(dx * dx + dy * dy);
 
 	if (distance < TANK_SPEED) {
-		// colocar el sprite en la celda
+		// colocar el sprite en la celda, actualizar posicion logica y aumentar la cantidad de celdas recorridas
 		this->activeTank->setPosition(goalX, goalY);
-
-		// actualizar posicion logica
-		this -> activeTank->setCurrentRow(goalRow);
+		this-> activeTank->setCurrentRow(goalRow);
 		this->activeTank->setCurrentCol(goalCol);
-
-		// avanzar al siguiente paso del path
 		this->activeTank->incrementPathIndex();
 
 		// verificar si ya se recorrio todo el path
@@ -456,7 +445,137 @@ void Game::AnimateMoveTank()
 
 }
 
+void Game::selectPathAlgorithm(int currentIndex, int GoalIndex)
+{
+	std::string colorTank = this->activeTank->getId();
+	if (colorTank == "amarillo" || colorTank == "rojo") {
+		// Dijkstra 80% de probabilidad, Linea vista 20%
+		int randomNum = rand() % 100;
+		if (randomNum < 80) {
+			// llamar a dijkstra y establecer el camino que debe de seguir el tanque activo
+			this->SetDijkstraPath(currentIndex, GoalIndex);
+		}
+		else {
+			// llamar a linea vista y establecer el camino que debe de seguir el tanque activo
+			this->SetLineOfSightPath(currentIndex, GoalIndex);
+		}
+	}
+	else {
+		// BFS 50% de probabilidad, Linea vista 50%
+		int randomNum = rand() % 100;
+		if (randomNum < 50) {
+			// aqui va la logica del bfs, se puede hacer un metodito aparte
+		}
+		else {
+			// llamar a linea vista y establecer el camino que debe de seguir el tanque activo
+			this->SetLineOfSightPath(currentIndex, GoalIndex);
+		}
+	}
+}
 
+// le da el path a seguir al tanque por el algoritmo de Dijkstra
+void Game::SetDijkstraPath(int currentIndex, int GoalIndex)
+{
+	int* path;
+	int sizeOfPath;
+
+	// llamar a dijkstra, obtener el camino y el tamanio del camino
+	this->AlgDijkstra = new Dijkstra(this->gameMap->getAdjMatrix());
+	path = this->AlgDijkstra->DijkstraAlgorithm(currentIndex, GoalIndex);
+	sizeOfPath = this->AlgDijkstra->getPathSize();
+
+	// si el camino es inalcanzable
+	if (path == nullptr || sizeOfPath == 0) {
+		return;
+	}
+
+	// establecer la ruta a seguir del tanque
+	this->activeTank->setPathToGo(path, sizeOfPath);
+}
+
+// le da el path a seguir al tanque por el algoritmo linea vista y llama a movimiento aleatorio en caso de ser necesario
+void Game::SetLineOfSightPath(int currentIndex, int GoalIndex)
+{
+	this->AlgLineOfSight = new LineOfSight(this->gameMap->getMapMatrix());
+	// variables para guardar temporalmente el path
+	int* path;
+	int sizeOfPath;
+
+	// obtener coordenadas actuales ( en cada iteracion por movimiento aleatorio)
+	int tankRow = this->activeTank->getCurrentRow();
+	int tankCol = this->activeTank->getCurrentCol();
+	int goalRow = this->gameMap->toRow(GoalIndex);
+	int goalCol = this->gameMap->toCol(GoalIndex);
+
+	// realizar linea vista si no hay obstaculos intermedios
+	if (this->AlgLineOfSight->LineOfSightAlgorithm(tankRow, tankCol, goalRow, goalCol)) {
+		path = this->AlgLineOfSight->getPath();
+		sizeOfPath = this->AlgLineOfSight->getPathSize();
+	}
+	else {
+		// preparar filas y columnas para movimiento random
+		int randomRow;
+		int randomCol;
+
+		// realizar un movimiento aleatorio
+		this->randomMove(randomRow, randomCol, goalRow, goalCol);
+
+		// mover el tanque a la posicion aleatoria (aparece de pronto)
+		this->activeTank->setCurrentRow(randomRow);
+		this->activeTank->setCurrentCol(randomCol);
+		this->activeTank->setPosition(randomCol * this->cellWidth, randomRow * this->cellHeight);
+
+		// volver a obtener las coordenadas actuales del tanque ( en cada iteracion por movimiento aleatorio)
+		tankRow = this->activeTank->getCurrentRow();
+		tankCol = this->activeTank->getCurrentCol();
+
+		// volver a aplicar linea vista
+		this->AlgLineOfSight->clearLineOfSight();
+		this->AlgLineOfSight->LineOfSightAlgorithm(randomRow, randomCol, goalRow, goalCol);
+
+		// utilizar el path obtenido, ya sea completo o parcial
+		path = this->AlgLineOfSight->getPath();
+		sizeOfPath = this->AlgLineOfSight->getPathSize();
+
+	}
+
+	// verificar si el camino es inalcanzable, sino no hay cambio
+	if (path == nullptr || sizeOfPath == 0) {
+		return;
+	}
+
+	// establecer camino que debe de seguir el tanque
+	this->activeTank->setPathToGo(path, sizeOfPath);
+}
+
+// mueve aleatoriamnete el tanque dentro de un rango definido
+void Game::randomMove(int& randomRow, int& randomCol, int goalRow, int goalCol)
+{
+	bool isfree = false;
+
+	while (!isfree) {
+		// generar una columna y una fila random
+		randomRow = this->activeTank->getCurrentRow() + (rand() % (2 * RANDOM_MOVE_RADIUS + 1)) - RANDOM_MOVE_RADIUS;
+		randomCol = this->activeTank->getCurrentCol() + (rand() % (2 * RANDOM_MOVE_RADIUS + 1)) - RANDOM_MOVE_RADIUS;
+
+		// verificar que no es la posicion anterior (no hubo movimiento aleatorio)
+		if (randomRow == this->activeTank->getCurrentRow() && randomCol == this->activeTank->getCurrentCol()) {
+			continue;
+		}
+
+		// verificar que no es la posicion destino (llegue al destino pero no por linea vista)
+		if (randomRow == goalRow && randomCol == goalCol) {
+			continue;
+		}
+
+		// verificar que la celda no sea una pared y que este dentro d elos limites del mapa
+		if (randomRow < MAP_SIZE && randomCol < MAP_SIZE &&
+			randomRow >= 0 && randomCol >= 0 &&
+			this->gameMap->isCellFree(randomRow, randomCol)) {
+			isfree = true;
+		}
+	}
+}
 
 void Game::updateGame()
 {
@@ -465,7 +584,8 @@ void Game::updateGame()
 	}
 	if (this->activeTank != nullptr && !this->activeTank->getIsMoving()) {
 		this->activeTank = nullptr;
-		// aqui puede ir la logica de cambiar turnos
+
+		// notita: por aqui podriamos poner la logica de cambiar turnos
 	}
 	
 }

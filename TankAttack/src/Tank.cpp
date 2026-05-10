@@ -2,7 +2,7 @@
 #include <iostream>
 
 //Constructor y destructor
-Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, std::string texturePath, int id)
+Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, std::string texturePath, std::string id)
 {
 	//Posicion logica del tanque
 	this->currentRow = row;
@@ -12,7 +12,6 @@ Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, 
 	this->windowSize = windowSize;
 	this->window = window;
 	this->texturePath = texturePath;
-
 	this->cellHeight = (float)this->windowSize.y / MAP_SIZE;
 	this->cellWidth = (float)this->windowSize.x / MAP_SIZE;
 
@@ -24,9 +23,9 @@ Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, 
 	this->pathToGo = nullptr;
 	this->isMoving = false;
 	this->pathIndex = -1;
-	this->PathSize = 0;
+	this->pathSize = 0;
 
-	// id tanque
+	// id (color) del tanque
 	this->tankID = id;
 
 	this->initTank();
@@ -35,10 +34,10 @@ Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, 
 
 Tank::~Tank()
 {
-	//
+	delete[] pathToGo;
 }
 
-//Metodos privados
+// METODOS PRIVADOS
 
 void Tank::initTank()
 {
@@ -56,15 +55,13 @@ void Tank::initTank()
 
 void Tank::renderTank()
 {
-	//para saber el tamano de cada celda
-	float cellWidth = (float)this->windowSize.x / MAP_SIZE;
-	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
-
 	//se escala el tamano del sprite a las celdas
-	this->tankSprite.setScale(cellWidth / this->tankTexture.getSize().x, cellHeight / this->tankTexture.getSize().y);
+	this->tankSprite.setScale(this->cellWidth / this->tankTexture.getSize().x, this->cellHeight / this->tankTexture.getSize().y);
 	this->window->draw(this->tankSprite);
 
 }
+
+// METODOS PUBLICOS
 
 // moveSprite actualiza la posición visual antes de llegar a una celda destino y actualizar la posicion logica
 void Tank::moveSprite(float dx, float dy) {
@@ -80,15 +77,13 @@ void Tank::setPosition(float x, float y) {
 	this->tankSprite.setPosition(x, y);
 }
 
-//Metodos publicos
-
+// cuando se crea el tanque, se renderiza
 void Tank::createTank()
 {
 	this->renderTank();
 }
 
 //Esto es para la posicion logica, la actual
-
 int Tank::getCurrentRow()
 {
 	return this->currentRow;
@@ -99,18 +94,18 @@ int Tank::getCurrentCol()
 	return this->currentCol;
 }
 
-// retorna el id que se le asigno al tanque, esto ya que en game se tiene un arreglo dinamico de tanques
-// faciliatr acceso
-int Tank::getId()
+// retorna el id que se le asigno al tanque
+std::string Tank::getId()
 {
 	return this->tankID;
 }
 
-// establece el camino a seguir y que nos vamos a mover con la variable isMoving
+// sets y get del path
+// establece el camino a seguir e indica que nos vamos a mover siempre que la variable isMoving sea true
 void Tank::setPathToGo(int* path, int sizePath)
 {
 	this->pathToGo = path;
-	this->PathSize = sizePath;
+	this->pathSize = sizePath;
 	this->pathIndex = 0;
 	this->isMoving = true;
 }
@@ -120,11 +115,13 @@ int* Tank::getPathToGo()
 	return this->pathToGo;
 }
 
+// get del tamanio el path
 int Tank::GetPathSize()
 {
-	return this->PathSize;
+	return this->pathSize;
 }
 
+// incrementar y get de el indice del path al que ha avanzado el tanque
 void Tank::incrementPathIndex()
 {
 	this->pathIndex++;
@@ -135,8 +132,7 @@ int Tank::getPathIndex()
 	return this->pathIndex;
 }
 
-
-
+// get y set de la variable IsMoving
 bool Tank::getIsMoving()
 {
 	return this->isMoving;
@@ -162,12 +158,13 @@ void Tank::setCurrentCol(int col)
 	this->currentCol = col;
 }
 
+
 void Tank::clearPath()
 {
 	delete[] this->pathToGo;
 	this->pathToGo = nullptr;
 	this->pathIndex = 0;
-	this->PathSize = 0;
+	this->pathSize = 0;
 
 }
 
