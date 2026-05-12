@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "dijkstra.h"
 #include "lineOfSight.h"
+#include "BFS.h"
 
 enum class GameState {
 	menu,
@@ -77,6 +78,7 @@ private:
 	// algoritmos de busqueda de camino mas corto
 	Dijkstra* AlgDijkstra;
 	LineOfSight* AlgLineOfSight;
+	BFS* AlgBFS;
 
 public:
 	// constructor y destructor
@@ -112,6 +114,7 @@ public:
 	void selectPathAlgorithm(int currentIndex, int GoalIndex);
 	void SetDijkstraPath(int currentIndex, int GoalIndex);
 	void SetLineOfSightPath(int currentIndex, int GoalIndex);
+	void SetBFSPath(int currentIndex, int GoalIndex);
 	void randomMove(int& randomRow, int& randomCol,int goalRow, int goalCol);
 	bool isThereATank(int row, int col);
 

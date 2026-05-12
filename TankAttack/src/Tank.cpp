@@ -100,14 +100,14 @@ void Tank::drawPath()
 
 // METODOS PUBLICOS
 
-// moveSprite actualiza la posición visual antes de llegar a una celda destino y actualizar la posicion logica
+// moveSprite actualiza la posicion visual antes de llegar a una celda destino y actualizar la posicion logica
 void Tank::moveSprite(float dx, float dy) {
 	this->visualX += dx;
 	this->visualY += dy;
 	this->tankSprite.setPosition(this->visualX, this->visualY);
 }
 
-// setPosition también actualiza la posición visual definitiva cuando se llega a una celda destino
+// setPosition tambien actualiza la posicion visual definitiva cuando se llega a una celda destino
 void Tank::setPosition(float x, float y) {
 	this->visualX = x;
 	this->visualY = y;
@@ -205,7 +205,6 @@ void Tank::clearPath()
 
 }
 
-//Esto obtiene los limites del tanque en un FloatRect para hacer .getBounds, es lo mismo que usan los botones
 //Sirve para el rango de seleccion de un tanque al hacer click
 sf::FloatRect Tank::getArea() 
 {

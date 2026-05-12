@@ -2,7 +2,6 @@
 #include <ctime>
 #include "Game.h"
 #include "map.h"
-
 using namespace std;
 
 // constructor y destructor
@@ -31,6 +30,7 @@ Game::~Game()
 
 	delete this->AlgDijkstra;
 	delete this->AlgLineOfSight;
+	delete this->AlgBFS;
 
 }
 
@@ -87,7 +87,7 @@ void Game::PollEvents() {
 
 		case sf::Event::MouseButtonPressed:
 			if (gameEvent.type == sf::Event::MouseButtonPressed && gameEvent.mouseButton.button == sf::Mouse::Left) {
-				// obtener la posición
+				// obtener la posicion
 				sf::Vector2f mousePos(gameEvent.mouseButton.x, gameEvent.mouseButton.y);
 
 				// ver si la posicion esta cerca de alguno de los dos botones
@@ -108,7 +108,7 @@ void Game::PollEvents() {
 						this->State = GameState::menu;
 					}
 
-					// si no hay tanque seleccionado aún, intentar seleccionar
+					// si no hay tanque seleccionado aun, intentar seleccionar
 					if (this->players[this->currentPlayer]->getSelectedTank() == nullptr) {
 						this->TankSelection(mousePos);
 					}
@@ -212,10 +212,10 @@ void Game::initMenu()
 
 void Game::updateMenu()
 {
-	// obtener la posición actual del mouse relativa a la ventana
+	// obtener la posicion actual del mouse relativa a la ventana
 	sf::Vector2f mousePos = this->windowGame->mapPixelToCoords(sf::Mouse::getPosition(*this->windowGame));
 
-	// cambiar color de los botones si el mouse está sobre ellos
+	// cambiar color de los botones si el mouse esta sobre ellos
 
 	// boton de play
 	if (this->playButton.getGlobalBounds().contains(mousePos)) {
@@ -248,7 +248,7 @@ void Game::renderMenu()
 	// limpiar la ventana antes de dibujar el frame actual
 	this->windowGame->clear();
 
-	// escalar el background para que cubra toda la ventana sin importar la resolución
+	// escalar el background para que cubra toda la ventana sin importar la resolucion
 	this->backgroundMenu.setScale(
 		(float)this->videoMode.width / this->background.getSize().x,   
 		(float)this->videoMode.height / this->background.getSize().y   
@@ -307,6 +307,7 @@ void Game::initGame()
 		// punteros de algoritmos
 		this->AlgDijkstra = nullptr;
 		this->AlgLineOfSight = nullptr;
+		this->AlgBFS = nullptr;
 	}
 	//Esto siempre para que siempre se genere un mapa nuevo
 	this->gameMap->createMap();
@@ -409,7 +410,7 @@ void Game::AnimateMoveTank()
 	float goalX = goalCol * this->cellWidth;
 	float goalY = goalRow * this->cellHeight;
 
-	// calcular la diferencia entre la posición actual y el destino
+	// calcular la diferencia entre la posicion actual y el destino
 	sf::Vector2f currentPos = this->activeTank->getSpritePosition();
 	float dx = goalX - currentPos.x;
 	float dy = goalY - currentPos.y;
@@ -438,7 +439,7 @@ void Game::AnimateMoveTank()
 		float normalX = dx / distance;
 		float normalY = dy / distance;
 
-		// mover el sprite TANK_SPEED píxeles en la dirección correcta
+		// mover el sprite TANK_SPEED pixeles en la direccion correcta
 		this->activeTank->moveSprite(normalX * TANK_SPEED, normalY * TANK_SPEED);
 
 	}
@@ -464,7 +465,7 @@ void Game::selectPathAlgorithm(int currentIndex, int GoalIndex)
 		// BFS 50% de probabilidad, Linea vista 50%
 		int randomNum = rand() % 100;
 		if (randomNum < 50) {
-			// aqui va la logica del bfs, se puede hacer un metodito aparte
+			this->SetBFSPath(currentIndex, GoalIndex);
 		}
 		else {
 			// llamar a linea vista y establecer el camino que debe de seguir el tanque activo
@@ -476,6 +477,7 @@ void Game::selectPathAlgorithm(int currentIndex, int GoalIndex)
 // le da el path a seguir al tanque por el algoritmo de Dijkstra
 void Game::SetDijkstraPath(int currentIndex, int GoalIndex)
 {
+
 	int* path;
 	int sizeOfPath;
 
@@ -546,6 +548,26 @@ void Game::SetLineOfSightPath(int currentIndex, int GoalIndex)
 
 	// establecer camino que debe de seguir el tanque
 	this->activeTank->setPathToGo(path, sizeOfPath);
+}
+
+// le da el path a seguir al tanque por el algoritmo BFS
+void Game::SetBFSPath(int currentIndex, int goalIndex) 
+{
+	int* path;
+	int pathSize;
+
+	//llamamos al algoritmo BFS, obtenemos el path y el tamanio del path
+	this->AlgBFS = new BFS(this->gameMap->getAdjMatrix());
+	path = this->AlgBFS->BFSAlgorithm(currentIndex, goalIndex);
+	pathSize = this->AlgBFS->getPathSize();
+
+	//camino inalcanzable
+	if (path == nullptr || pathSize == 0) {
+		return;
+	}
+
+	//establecer la ruta a seguir del tanque
+	this->activeTank->setPathToGo(path, pathSize);
 }
 
 // mueve aleatoriamnete el tanque dentro de un rango definido
@@ -643,7 +665,6 @@ void Game::renderGame()
 	this->tanks[2]->createTank();
 	this->tanks[3]->createTank();
 
-	// NOTA : ESTO ES POR MIENTRAS: ES PARA RESALTAR LOS TANQUES SEGUN EL TURNO LINEA 394-419
 	float cellWidth = (float)this->windowSize.x / MAP_SIZE;
 	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
 

@@ -139,12 +139,14 @@
     <ClCompile Include="src\map.cpp" />
     <ClCompile Include="src\Player.cpp" />
     <ClCompile Include="src\Tank.cpp" />
+    <ClCompile Include="structures\BFS.cpp" />
     <ClCompile Include="structures\Dijkstra.cpp" />
     <ClCompile Include="structures\grafo.cpp" />
     <ClCompile Include="structures\LineOfSight.cpp" />
     <ClCompile Include="structures\Queue.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\BFS.h" />
     <ClInclude Include="include\dijkstra.h" />
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GameConfig.h" />

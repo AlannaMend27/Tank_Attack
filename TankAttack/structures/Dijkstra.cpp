@@ -27,19 +27,19 @@ Dijkstra::~Dijkstra() {
 
 int Dijkstra::MinorElement()
 {
-	int menor = -1; // empezamos sin ningún candidato
+	int minor = -1; // empezamos sin ningun candidato
 
 	for (int i = 0; i < GRAPH_SIZE; i++) {
-		// solo considerar nodos no visitados y que estén en la cola (los que tengas un peso infinito INT MAX)
+		// solo considerar nodos no visitados y que esten en la cola (los que tengan un peso infinito INT MAX)
 		if (!this->visited[i] && this->distance[i] != INT_MAX) {
-			// si no hay candidato aún o encontramos uno nodo con menor peso entonces actualizamos la variable menor
-			if (menor == -1 || this->distance[i] < this->distance[menor]) {
-				menor = i;
+			// si no hay candidato aun o encontramos uno nodo con menor peso entonces actualizamos la variable menor
+			if (minor == -1 || this->distance[i] < this->distance[minor]) {
+				minor = i;
 			}
 		}
 	}
 
-	return menor;
+	return minor;
 }
 
 // este metodo recorre el camino para llegar del nodo destino al nodo inicial, es la parte final del algoritmo
@@ -47,7 +47,7 @@ int* Dijkstra::shortestPath()
 {
 	// calcular cuentos nodos hay que recorrer antes de llegar al destino
 	int father = this->goalIndex;
-	// hasta que lleguemos al inicio que sería un nodo que no tenga padre asignado
+	// hasta que lleguemos al inicio que seria un nodo que no tenga padre asignado
 	while (father != -1) {
 		this->pathSize++;
 		father = previous[father];
@@ -56,7 +56,7 @@ int* Dijkstra::shortestPath()
 
 	this->path = new int[this->pathSize];
 	father = this->goalIndex;
-	// generar el camino (de nodo actual al destinol)
+	// generar el camino (de nodo actual al destino)
 	for (int i = this->pathSize-1; i >= 0 ;i--) {
 		this->path[i] = father;
 		if (father != -1) {
@@ -79,16 +79,16 @@ int* Dijkstra::DijkstraAlgorithm(int startIndex, int goalIndex)
 	priorityQueue[this->startIndex] = 0;
 	this->contQueue++;
 
-	// funcionar hasta que no queden más elementos en la cola
+	// funcionar hasta que no queden mas elementos en la cola
 	while (this->contQueue != 0) {
 
-		// encontrar elemento más pequeño en la cola de prioridad y marcarlo como visitado
+		// encontrar elemento mas pequenio en la cola de prioridad y marcarlo como visitado
 		int min = this->MinorElement();
 		this->visited[min] = true;
 		this->contQueue--;
 
 
-		// revisar si hemos llehado al destino
+		// revisar si hemos llegado al destino
 		if (min == this->goalIndex) {
 			break;
 		}
@@ -99,7 +99,7 @@ int* Dijkstra::DijkstraAlgorithm(int startIndex, int goalIndex)
 			// y que el nodo vecino no haya sido visitado
 			if (this->graphMatrix[min][i] != 0 && !this->visited[i]) {
 				// verificar si el nodo actual es alcanzable y si hay un camino mas corto al actual para ese nodo (inician en infinito)
-				// notita: ese 1 hay que cambiarlo, solo es ese pq ahorita todos los nodos tienen un pesito de 1
+				// notita: ese 1 hay que cambiarlo, solo es ese pq ahorita todos los nodos tienen un pesito de 1. okokok
 				if (this->distance[min] != INT_MAX && this->distance[min] + 1 < this->distance[i]) {
 					// asignar el peso que tiene llegar a ese vecino
 					this->distance[i] = this->distance[min] + 1;

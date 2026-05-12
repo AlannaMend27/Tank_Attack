@@ -31,7 +31,7 @@ graph::~graph()
 	delete[] matrix;
 }
 
-// metodos públicos de la clase
+// metodos publicos de la clase
 
 void graph::createEdge(int a, int b, int weightNode)
 {

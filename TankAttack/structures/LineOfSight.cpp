@@ -45,7 +45,7 @@ bool LineOfSight::LineOfSightAlgorithm(int rowStart, int colStart, int rowGoal, 
 		this->incrementX = -1;
 	}
 
-	// si la línea es más horizontal (avanza más en X que en Y)
+	// si la linea es mas horizontal (avanza mas en X que en Y)
 	if (this->dx > this->dy) {
 
 		this->path = new int[this->dx];
@@ -78,7 +78,7 @@ bool LineOfSight::LineOfSightAlgorithm(int rowStart, int colStart, int rowGoal, 
 			this->pathSize++;
 		}
 	}
-	// si la línea es más "vertical" (avanza más en Y que en X)
+	// si la linea es mas "vertical" (avanza mas en Y que en X)
 	else {
 		this->path = new int[this->dy];
 
