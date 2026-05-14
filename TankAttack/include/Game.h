@@ -8,6 +8,7 @@
 #include "lineOfSight.h"
 #include "BFS.h"
 #include "Bullet.h"
+#include "DynamicArray.h"
 
 enum class GameState {
 	menu,
@@ -115,7 +116,8 @@ public:
 	void TankSelection(sf::Vector2f mousePos);
 	void mouseClickToCoords(sf::Vector2f mousePos, int& row, int& col);
 	void shootBullet(sf::Vector2f mousePos);
-	
+	void blockOtherTanks(Tank* tankToExclude);
+	void unblockOtherTanks(Tank* tankToExclude);
 
 	// metodos relacionados al movimiento de los tanques
 	void moveTank(sf::Vector2f mousePos);
@@ -129,5 +131,6 @@ public:
 
 	//Metodos relacionados al movimiento de las balas
 	void animateBulletMove();
+	void calculateNextBounce();
 
 };

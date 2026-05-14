@@ -50,6 +50,17 @@ void graph::createNode(int weightNode, int id)
 	}
 }
 
+//mopdifica una arista en la matriz de adyacencia (por si hay que actualizar que hay un tanque ahi)
+//nodoA es el origen, B el destino, value es 1 si hay coexion 0 si no
+void graph::setEdge(int nodeA, int nodeB, int value) 
+{
+	if (nodeA < this->size && nodeB < this->size) {
+		//Ponemos la conexion en digamos "true o false" y como es no dirigido en ambas direcciones
+		this->matrix[nodeA][nodeB] = value;
+		this->matrix[nodeB][nodeA] = value;
+	}
+}
+
 const int* const* graph::getMatriz() const
 {
 	return this->matrix;

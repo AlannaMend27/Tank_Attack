@@ -2,7 +2,7 @@
 #include <ctime>
 #include "Game.h"
 #include "map.h"
-using namespace std;
+
 
 // constructor y destructor
 
@@ -406,7 +406,7 @@ void Game::moveTank(sf::Vector2f mousePos)
 
 	// verificar que la celda no sea uun obstaculo
 	if (!this->gameMap->isCellFree(mouseRow, mouseCol)) {
-		// aqui quiero agregar un aviso de pq no se pudo mover el tanque ahi
+		// aqui quiero agregar un aviso de pq no se pudo mover el tanque ahi. Dale okok 
 		return;
 	}
 	// verificar que no haya un tanque en la posicion
@@ -425,16 +425,18 @@ void Game::moveTank(sf::Vector2f mousePos)
 		return;
 	}
 
-	
 	this->activeTank = tankToMove;
 
 	// convertir indices del mapa a indices en la matriz de adyacencia del grafo
 	int currentIndex = this->gameMap->toIndex(tankToMove->getCurrentRow(), tankToMove->getCurrentCol());
 	int GoalIndex = this->gameMap->toIndex(mouseRow, mouseCol);
 
-	//selecciona el algoritmo a utilizar de acuerdo al color del tanque y se lo da a this->activeTank
+	//bloquemos los otros tanques para detectarlos como "obstaculos"
+	this->blockOtherTanks(tankToMove);
+	//selecciona el algoritmo a utilizar de acuerdo al color del tanque y se lo da a this->activeTank, luego de bloquearlos para que haga el path bien
 	this->selectPathAlgorithm(currentIndex, GoalIndex);
-
+	//los desbloqueamos luego de ya calcular el movimiento
+	this->unblockOtherTanks(tankToMove);
 	this->tankMode = false;
 	// reiniciar tanque seleccionado(turnos)
 	this->players[this->currentPlayer]->deselectTank();
@@ -499,7 +501,6 @@ void Game::animateBulletMove()
 	int goalRow = this->gameMap->toRow(goalCell);
 	int goalCol = this->gameMap->toCol(goalCell);
 
-
 	// convertir la fila y columna a pixeless
 	float goalX = goalCol * this->cellWidth;
 	float goalY = goalRow * this->cellHeight;
@@ -514,16 +515,37 @@ void Game::animateBulletMove()
 	float distance = std::sqrt(dx * dx + dy * dy);
 
 	if (distance < BULLET_SPEED) {
-		// colocar el sprite en la celda, actualizar posicion logica y aumentar la cantidad de celdas recorridas
 		this->activeBullet->setPosition(goalX, goalY);
+
+		//detectar si la bala pego en un tanque a la hora de ir a goal
+		if (this->isThereATank(goalRow, goalCol)) {
+			// nota : aqui podes poner que el tanque reciba danio o dentro de isthereatank
+			this->activeBullet->setIsMoving(false);
+			this->activeBullet->clearPath();
+			return;
+		}
+
 		this->activeBullet->setCurrentRow(goalRow);
 		this->activeBullet->setCurrentCol(goalCol);
 		this->activeBullet->incrementPathIndex();
 
 		// verificar si ya se recorrio todo el path
 		if (this->activeBullet->getPathIndex() >= this->activeBullet->GetPathSize()) {
-			this->activeBullet->setIsMoving(false);
-			this->activeBullet->clearPath();
+			// si ya llego al objetivo desaparece
+			if (this->activeBullet->getCurrentRow() == this->activeBullet->getGoalRow() && this->activeBullet->getCurrentCol() == this->activeBullet->getGoalCol()) {
+
+				this->activeBullet->setIsMoving(false);
+				this->activeBullet->clearPath();
+
+			}
+			// si aun quedan rebotes, calcular el siguiente segmento, si no borrarlo
+			else if (this->activeBullet->getBounceCount() < MAX_BULLET_BOUNCES) {
+				this->calculateNextBounce();
+			}
+			else {
+				this->activeBullet->setIsMoving(false);
+				this->activeBullet->clearPath();
+			}
 		}
 
 	}
@@ -696,9 +718,6 @@ void Game::randomMove(int& randomRow, int& randomCol, int goalRow, int goalCol)
 // dispara desde el tanque seleccionado hasta donde se haga click (derecho)
 void Game::shootBullet(sf::Vector2f mousePos) 
 {
-	// para guardar el path temporalmente
-	int* path;
-	int sizeOfPath;
 
 	//convertir click a coordenadas
 	int goalRow;
@@ -716,16 +735,15 @@ void Game::shootBullet(sf::Vector2f mousePos)
 	int tankRow = shootingTank->getCurrentRow();
 	int tankCol = shootingTank->getCurrentCol();
 
+	//nota: aqui no bloqueamos los tanques, por que la idea es que reciban danio, la deteccion la hace isthereatank
 
-	
-	//NOTA: ESTO NO SE SI CAUSA EL MISMO ERROR QUE TENIAMOS DEL NUEVO OBJETO, CREO QUE SI :/
-	this->AlgLineOfSight = new LineOfSight(this->gameMap->getMapMatrix());
-
+	this->AlgLineOfSight = new LineOfSight(this->gameMap->getMapMatrix()); 
 	//calcular el path con linea vista desde el tanque que disparo hasta el goal
 	this->AlgLineOfSight->LineOfSightAlgorithm(tankRow, tankCol, goalRow, goalCol);
 
-	path = this->AlgLineOfSight->getPath();
-	sizeOfPath = this->AlgLineOfSight->getPathSize();
+	// para guardar el path temporalmente
+	int* path = this->AlgLineOfSight->getPath();
+	int sizeOfPath = this->AlgLineOfSight->getPathSize();
 
 	// si el camino es inalcanzabkle no se dispara
 	if (path == nullptr || sizeOfPath == 0) {
@@ -736,8 +754,140 @@ void Game::shootBullet(sf::Vector2f mousePos)
 	this->activeBullet = new Bullet(tankRow, tankCol, this->windowSize, this->windowGame);
 	this->activeBullet->setPathToGo(path, sizeOfPath);
 
+	// guardamos donde se hace click, para saber si llego al goal o choco con algo
+	this->activeBullet->setGoal(goalRow, goalCol);
+
+	// restamos la posicion del tanque para obtener la diferencia (cuanto se movio en cada eje)
+	int dirRow = this->AlgLineOfSight->getLastRow() - tankRow;
+	int dirCol = this->AlgLineOfSight->getLastCol() - tankCol;
+
+	// normalizamos las direcciones en ambos ejes a -1, 0 o 1
+	// si dirRow es -1 = va hacia arriba, 0 = no se mueve en filas, 1 = va hacia abajo
+	// dirCol es -1 = va hacia la izquierda, 0 = no se mueve en columnas, 1 = va hacia la derecha
+	// ejemplo: dirRow = 5 → 5/5 = 1 (iba hacia abajo)
+	//          dirRow = -3 → -3/3 = -1 (iba hacia arriba)
+	//          dirRow = 0 → se queda en 0 (no se movia en ese eje)
+	// la idea es guardar esta direcion para que en calculatenext bounce le demos un giro de 90 grados 
+
+	if (dirCol != 0){
+		dirRow = dirRow / abs(dirRow);
+	}
+
+	if (dirCol != 0) {
+		dirCol = dirCol / abs(dirCol);
+	}
+
+	// aqui la guardamos
+	this->activeBullet->setDir(dirRow, dirCol);
+
+	//deseleccionamos el tanque y ponemos modo mover de nuevo
 	this->players[this->currentPlayer]->deselectTank();
 	this->tankMode = false;
+}
+
+//calcula el siguiente segmento de la bala luego de pegar con un muro
+void Game::calculateNextBounce()
+{
+	//posicion actual de la bala, desde aqui empiesza el nuevo segmento
+	int currentRow = this->activeBullet->getCurrentRow();
+	int currentCol = this->activeBullet->getCurrentCol();
+
+
+	// si la posicion actual no es valida o es un obstaculo desaparece
+	if (!this->gameMap->isPositionValid(currentRow, currentCol) || !this->gameMap->isCellFree(currentRow, currentCol)) {
+		this->activeBullet->setIsMoving(false);
+		this->activeBullet->clearPath();
+		return;
+	}
+
+	// asegura que los tanques no esten bloqueados como obstaculos, sin esto las balas rebotan en los tanwqques
+	for (int i = 0; i < 4; i++) {
+		this->gameMap->unblockMapNode(this->tanks[i]->getCurrentRow(),this->tanks[i]->getCurrentCol());
+	}
+
+	//obtenemos la direccion que traia la bala antes del rebote
+	int dirRow = this->activeBullet->getDirRow();
+	int dirCol = this->activeBullet->getDirCol();
+
+	//rota 90 grados siempre
+	int newDirRow = dirCol;
+	int newDirCol = -dirRow;
+
+	// si estamos en borde superior/inferior, invertir direccion en filas, para que rebote en el borde del mapoa
+	if (currentRow == 0 || currentRow == MAP_SIZE - 1) {
+		newDirRow = -newDirRow;
+	}
+
+	// si estamos en borde izquierdo/derecho, invertir direccion en columnas, para lo mismo
+	if (currentCol == 0 || currentCol == MAP_SIZE - 1) {
+		newDirCol = -newDirCol;
+	}
+
+	//calcula el nuevo objetivo lo mas lejos posible, pero lo limita al tamanio del mapa para uqe no se salga
+	int newGoalRow = std::max(0, std::min(MAP_SIZE - 1, currentRow + newDirRow * MAP_SIZE));
+	int newGoalCol = std::max(0, std::min(MAP_SIZE - 1, currentCol + newDirCol * MAP_SIZE));
+
+	//si el objetivo es donde ya esta, desaparecer
+	if (newGoalRow == currentRow && newGoalCol == currentCol) {
+		this->activeBullet->setIsMoving(false);
+		this->activeBullet->clearPath();
+		return;
+	}
+
+	//calculamos el nuevo segmento con linea vista desde donde esta
+	LineOfSight* newSegment = new LineOfSight(this->gameMap->getMapMatrix());
+	newSegment->LineOfSightAlgorithm(currentRow, currentCol, newGoalRow, newGoalCol);
+
+	int pathSize = newSegment->getPathSize();
+	int* originalPath = newSegment->getPath();
+
+	//si no hay camino desaparece
+	if (originalPath == nullptr || pathSize == 0) {
+		this->activeBullet->setIsMoving(false);
+		delete newSegment;
+		return;
+	}
+
+	// copiar el path antes de borrar el segmento, sin esto destruye el path que le ibamos a dar a la bala
+	int* pathCopy = new int[pathSize];
+	for (int i = 0; i < pathSize; i++) {
+		pathCopy[i] = originalPath[i];
+	}
+	delete newSegment;
+
+	// actualizar la bala con la nueva direccion, path y sumar el rebote
+	this->activeBullet->setDir(newDirRow, newDirCol);
+	this->activeBullet->setPathToGo(pathCopy, pathSize);
+	this->activeBullet->incrementBounce();
+}
+
+// Bloquea los nodos de los tanques (para detectarlos como obstaculos), recibe el tanque que no se bloquea
+void Game::blockOtherTanks(Tank* tankToExclude) 
+{
+	for (int i = 0; i < 4; i++) {
+		if (this->tanks[i] != tankToExclude) {
+			int otherTanksRow = this->tanks[i]->getCurrentRow();
+			int otherTanksCol = this->tanks[i]->getCurrentCol();
+			//bloqueamos los nodos donde estan los otros tanques
+			this->gameMap->blockNode(this->gameMap->toIndex(otherTanksRow, otherTanksCol));
+			this->gameMap->blockMapNode(otherTanksRow, otherTanksCol);
+		}
+	}
+
+}
+
+//Restaura los nodos bloqueados por el metodo anterior, esto se usa despues de calcular el pat
+void Game::unblockOtherTanks(Tank* tankToExclude) 
+{
+	for (int i = 0; i < 4; i++) {
+		if (this->tanks[i] != tankToExclude) {
+			int otherTanksRow = this->tanks[i]->getCurrentRow();
+			int otherTanksCol = this->tanks[i]->getCurrentCol();
+			//desbloqueamos los nodos donde estan los otros tanques
+			this->gameMap->unblockNode(this->gameMap->toIndex(otherTanksRow, otherTanksCol));
+			this->gameMap->unblockMapNode(otherTanksRow, otherTanksCol);
+		}
+	}
 }
 
 void Game::updateGame()
@@ -760,7 +910,7 @@ void Game::updateGame()
 		this->activeTank = nullptr;
 
 		// notita: por aqui podriamos poner la logica de cambiar turnos, okk es simplemente llamar a switch turn aqui, esta facil,
-		// de hecho se puede hacer ya pero dejemoslo asi para seguir probando cosas facil
+		// de hecho se puede hacer ya, pero dejemoslo asi para seguir probando cosas facil
 	}
 	
 }

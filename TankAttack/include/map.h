@@ -52,12 +52,17 @@ public:
 	const int* const* getAdjMatrix() const;
 	int** getMapMatrix()const;
 
-
 	// convierten indices de la matriz del juego a la matriz de adyacencia del grafo y viceversa
 	int toIndex(int row, int col);
 	int toRow(int index);
 	int toCol(int index);
 
+	//bloquea los nodos o los desbloquea dependiendo si hay un tanque 
+	void blockNode(int index);
+	void unblockNode(int index);
 
+	//Para linea vista
+	void blockMapNode(int row, int col);
+	void unblockMapNode(int row, int col);
 
 };

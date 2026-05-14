@@ -275,19 +275,60 @@ const int* const* Map::getAdjMatrix() const
 	return this->graphMap->getMatriz();
 }
 
+
+// metodo que devuleve la matriz de adyacencia del grafo
 int** Map::getMapMatrix() const
 {
 	return this->mapMatrix;
 }
 
+//bloquea temporalmente un nodo del grafo cortando sus conexiones (si hay un tanque)
+void Map::blockNode(int index) 
+{
+	for (int i = 0; i < GRAPH_SIZE; i++) {
+		//ponemos todas las conexiones de ese nodo en 0
+		this->graphMap->setEdge(index, i, 0);
+	}
+}
 
+//Desbloquea el nodo, por si el tanque se movio
+void Map::unblockNode(int index)
+{
+	//convertir el indice a fila y col
+	int row = this->toRow(index);
+	int col = this->toCol(index);
+	
+	//los vecinos posibles (los mismos que me explicaste)
+	int Rows[4] = { -1,1,0,0 };
+	int Cols[4] = { 0,0,-1,1 };
 
-// metodo que devuleve la matriz de adyacencia del grafo
+	for (int i = 0; i < 4; i++) {
+		int neighborRow = row + Rows[i];
+		int neighborCol = col + Cols[i];
 
+		//Solo restauramos si es una posicion valida y no es un muro, y ponemos la conexcion como 1
+		if (this->isPositionValid(neighborRow, neighborCol) && this->isCellFree(neighborRow, neighborCol)) {
+			int neighborIndex = this->toIndex(neighborRow, neighborCol);
+			this->graphMap->setEdge(index, neighborIndex, 1);
+		}
+	}
+
+}
+
+// marca la celda como 2 (tanque) para LineaVista
+void Map::blockMapNode(int row, int col) 
+{
+	this->mapMatrix[row][col] = 2;
+}
+
+//desbloquea
+void Map::unblockMapNode(int row, int col)
+{
+	this->mapMatrix[row][col] = 0;
+}
 
 //Publico para que pueda ser llamado
-void Map::drawMap() {
-
+void Map::drawMap()
+{
 	this->renderMap();
-
 }

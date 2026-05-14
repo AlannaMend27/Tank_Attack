@@ -70,7 +70,7 @@ bool LineOfSight::LineOfSightAlgorithm(int rowStart, int colStart, int rowGoal, 
 			this->col += this->incrementX;
 
 			// verificar si la celda es una pared
-			if (this->mapMatrix[this->row][this->col] == 1) {
+			if (this->mapMatrix[this->row][this->col] != 0) {
 				return false;
 			}
 			// si no hemos chocado con una pared, la guardamos en path
@@ -100,7 +100,7 @@ bool LineOfSight::LineOfSightAlgorithm(int rowStart, int colStart, int rowGoal, 
 			this->row += this->incrementY;
 
 			// verificar si la celda es una pared
-			if (this->mapMatrix[row][col] == 1) {
+			if (this->mapMatrix[row][col] != 0) {
 				return false;
 			}
 			// si no hemos chocado con una pared, la guardamos en path
@@ -122,6 +122,17 @@ int* LineOfSight::getPath()
 {
 	return this->path;
 }
+
+int LineOfSight::getLastRow() 
+{
+	return this->row;
+}
+
+int LineOfSight::getLastCol() 
+{
+	return this->col;
+}
+
 
 void LineOfSight::clearLineOfSight()
 {

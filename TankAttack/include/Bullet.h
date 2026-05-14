@@ -30,9 +30,17 @@ private:
 	int pathIndex;
 	bool isMoving;
 
+	//atributos para el rebote
+	int bounceCount;
+	int dirRow;       
+	int dirCol;       
+	int goalRow;    
+	int goalCol;
+
 	//metodos privados
 	void initBullet();
 	void renderBullet();
+	void drawPath();
 
 public:
 	// constructor y destructor
@@ -57,6 +65,17 @@ public:
 	int getCurrentCol();
 	void setCurrentRow(int row);
 	void setCurrentCol(int col);
+
+	//metodos para el rebote
+	int getBounceCount();
+	void incrementBounce();
+	int getDirRow();
+	int getDirCol();
+	void setDir(int dirRow, int dirCol);
+	int getGoalRow();
+	int getGoalCol();
+	void setGoal(int goalRow, int goalCol);
+
 	// nota: aqui podes poner getTankHit, para saber si la bala toco un tanque, o un getArea() igual que tanque
-	// realmente esta clase es casi identica a lo del movimiento del tanque
+	// realmente esta clase es casi identica a lo del movimiento del tanque a excepcion del bounce
 };

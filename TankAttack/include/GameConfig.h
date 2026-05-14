@@ -23,6 +23,8 @@ const float TANK_SPEED = 0.3f;
 //velocidad a la que se mueven las balas
 const float BULLET_SPEED = 0.3f;
 
+//Rebotes maximos de la bala
+const float MAX_BULLET_BOUNCES = 3;
 
 // Tiempo del juego
 // const int GAME_TIME = 300;

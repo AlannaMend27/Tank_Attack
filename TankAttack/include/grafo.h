@@ -27,5 +27,9 @@ public:
 	void createNode(int weightNode, int id);
 	const int* const* getMatriz() const;
 
+	void setEdge(int nodeA, int nodeB, int value);
+
+
+
 };
 

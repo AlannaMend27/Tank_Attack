@@ -22,8 +22,6 @@ private:
 	int* path;
 	int pathSize;
 
-	
-
 public:
 	// constructor y destructor
 	LineOfSight(int** matrix);
@@ -34,4 +32,8 @@ public:
 	int getPathSize();
 	int* getPath();
 	void clearLineOfSight();
+
+	//para saber la direccion que traia la bala (para el rebote)
+	int getLastRow();
+	int getLastCol();
 };

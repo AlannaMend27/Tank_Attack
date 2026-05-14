@@ -19,6 +19,14 @@ Bullet::Bullet(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* wind
 	this->pathIndex = 0;
 	this->isMoving = false;
 
+	// atributos para el rebote
+	this->bounceCount = 0;
+	// direccion en "x" y en "y"
+	this->dirRow = 0;
+	this->dirCol = 0;
+	this->goalRow = 0;
+	this->goalCol = 0;
+
 	this->initBullet();
 }
 
@@ -35,7 +43,6 @@ void Bullet::initBullet()
 	this->bulletTexture.loadFromFile("assets/textures/bullet.png");
 	this->bulletSprite.setTexture(this->bulletTexture);
 
-	// para que se vea mas pequenia que un tanque
 	this->bulletSprite.setScale(this->cellWidth / this->bulletTexture.getSize().x, this->cellHeight / this->bulletTexture.getSize().y);
 
 	// centrarla en la celda
@@ -49,10 +56,32 @@ void Bullet::renderBullet()
 	//actualizar el sprite y dibyujarlo
 	this->bulletSprite.setPosition(this->visualX, this->visualY);
 	this->window->draw(this->bulletSprite);
-
-	//(nota para mi) aqui va el path de las balas
+	this->drawPath();
 
 }
+
+//dibuja el path de la bala
+void Bullet::drawPath()
+{
+	//si se esta moviendo y tiene un path
+	if (this->isMoving && this->pathToGo != nullptr) {
+		sf::RectangleShape cellToColor(sf::Vector2f(this->cellWidth, this->cellHeight));
+
+		cellToColor.setOutlineThickness(-1);
+		cellToColor.setOutlineColor(sf::Color(100, 75, 80, 255));
+		cellToColor.setFillColor(sf::Color(100, 75, 80, 60));
+
+		for (int i = 0; i < this->pathSize; i++) {
+			// pathToGo guarda indices del grafo, dividir entre MAP_SIZE da la fila
+			// el modulo da la columna, si ves es igual que el que esta en map (to row y tocol)
+			int row = this->pathToGo[i] / MAP_SIZE;
+			int col = this->pathToGo[i] % MAP_SIZE;
+			cellToColor.setPosition(col * this->cellWidth, row * this->cellHeight);
+			this->window->draw(cellToColor);
+		}
+	}
+}
+
 
 //METODOS PUBLICOS
 
@@ -113,14 +142,12 @@ void Bullet::moveSprite(float dx, float dy)
 {
 	this->visualX += dx;
 	this->visualY += dy;
-	// nota: aqui podemos verificar si la bala toco un tanque comparando posicion logica
 }
 
 void Bullet::setPosition(float x, float y)
 {
 	this->visualX = x;
 	this->visualY = y;
-	// nota: aqui podemos verificar si la bala llego a una celda con tanque y aplicar daño
 }
 
 void Bullet::clearPath()
@@ -151,4 +178,54 @@ void Bullet::setCurrentRow(int row)
 void Bullet::setCurrentCol(int col) 
 { 
 	this->currentCol = col; 
+}
+
+// metodos para el rebote de la bala
+
+//cuantos rebotes lleva
+int Bullet::getBounceCount() 
+{ 
+	return this->bounceCount; 
+}
+
+void Bullet::incrementBounce() 
+{ 
+	this->bounceCount++; 
+}
+
+//retornan la direccion actual en filas y cols
+int Bullet::getDirRow() 
+{ 
+	return this->dirRow; 
+}
+
+int Bullet::getDirCol() 
+{ 
+	return this->dirCol; 
+}
+
+//pone una direcciona a la bala (para el rebote)
+void Bullet::setDir(int dirRow, int dirCol)
+{
+	this->dirRow = dirRow;
+	this->dirCol = dirCol;
+}
+
+//retornan la fila y col objetivo inicial
+int Bullet::getGoalRow() 
+{ 
+	return this->goalRow; 
+}
+
+int Bullet::getGoalCol() 
+{ 
+	return this->goalCol; 
+}
+
+// pone el objetivo nuevo del disparo (despues de un rebote)
+void Bullet::setGoal(int goalRow, int goalCol)
+{
+
+	this->goalRow = goalRow;
+	this->goalCol = goalCol;
 }
