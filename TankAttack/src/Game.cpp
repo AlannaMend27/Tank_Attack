@@ -32,6 +32,7 @@ Game::~Game()
 	delete this->AlgLineOfSight;
 	delete this->AlgBFS;
 
+	delete this->activeBullet;
 }
 
 // metodos privados
@@ -83,6 +84,13 @@ void Game::PollEvents() {
 			if (this->gameEvent.key.code == sf::Keyboard::C && this->State == GameState::playing) {
 				this->switchTurn();
 			}
+			//Cambio de modo moverse/disparo con v
+			if (this->gameEvent.key.code == sf::Keyboard::V && this->State == GameState::playing) {
+				if (this->players[this->currentPlayer]->getSelectedTank() != nullptr) {
+					//Cambia el modo
+					this->tankMode = !this->tankMode;
+				}
+			}
 			break;
 
 		case sf::Event::MouseButtonPressed:
@@ -108,17 +116,36 @@ void Game::PollEvents() {
 						this->State = GameState::menu;
 					}
 
-					// si no hay tanque seleccionado aun, intentar seleccionar
-					if (this->players[this->currentPlayer]->getSelectedTank() == nullptr) {
-						this->TankSelection(mousePos);
+					//nota esto no se si dejarlo, es para bloquear que si hay una bala no deje hacer nada
+					if (this->activeBullet != nullptr) {
+						break;
 					}
-					else {
-						// ya hay tanque seleccionado, este click es el destino
-						this->moveTank(mousePos);
+
+					// si no hay tanque seleccionado aun, intentar seleccionar, en modo disparo el click izq no hace nada
+					if (!this->tankMode){ 
+						if (this->players[this->currentPlayer]->getSelectedTank() == nullptr) {
+							this->TankSelection(mousePos);
+						}
+						else {
+							// ya hay tanque seleccionado, este click es el destino
+							this->moveTank(mousePos);
+						}
+					
 					}
 				}
 				
+			
 
+			}
+			//click derecho disparo
+			if (gameEvent.mouseButton.button == sf::Mouse::Right) {
+				sf::Vector2f mousePos(gameEvent.mouseButton.x, gameEvent.mouseButton.y);
+
+				//Verifica si no hay balas, si esta en modo disparo y si el tanque esta seleccionado
+				if (this->State == GameState::playing && this->activeBullet == nullptr && this->tankMode 
+					&& this->players[this->currentPlayer]->getSelectedTank() != nullptr) {
+						this->shootBullet(mousePos);
+				}
 			}
 
 		}
@@ -308,6 +335,9 @@ void Game::initGame()
 		this->AlgDijkstra = nullptr;
 		this->AlgLineOfSight = nullptr;
 		this->AlgBFS = nullptr;
+
+		//bala actual
+		this->activeBullet = nullptr;
 	}
 	//Esto siempre para que siempre se genere un mapa nuevo
 	this->gameMap->createMap();
@@ -315,6 +345,8 @@ void Game::initGame()
 
 void Game::switchTurn()
 {
+	//resetear el modo
+	this->tankMode = false;
 	// desactiva el turno al jugador actual
 	this->players[this->currentPlayer]->setTurn(false);
 
@@ -382,8 +414,18 @@ void Game::moveTank(sf::Vector2f mousePos)
 		return;
 	}
 
-	// obtener tanque seleccionado
+	// obtener el tanque a mover 
 	Tank* tankToMove = this->players[this->currentPlayer]->getSelectedTank();
+
+	// verificar que la diferencia entre las posiciones esta en el rango permitido
+	int rowDiff = abs(mouseRow - tankToMove->getCurrentRow());
+	int colDiff = abs(mouseCol - tankToMove->getCurrentCol());
+
+	if (rowDiff > MAX_MOVE_RADIUS || colDiff > MAX_MOVE_RADIUS) {
+		return;
+	}
+
+	
 	this->activeTank = tankToMove;
 
 	// convertir indices del mapa a indices en la matriz de adyacencia del grafo
@@ -393,11 +435,12 @@ void Game::moveTank(sf::Vector2f mousePos)
 	//selecciona el algoritmo a utilizar de acuerdo al color del tanque y se lo da a this->activeTank
 	this->selectPathAlgorithm(currentIndex, GoalIndex);
 
+	this->tankMode = false;
 	// reiniciar tanque seleccionado(turnos)
 	this->players[this->currentPlayer]->deselectTank();
 }
 
-void Game::AnimateMoveTank()
+void Game::AnimateTankMove()
 {
 	int* path = this->activeTank->getPathToGo();
 	
@@ -445,6 +488,57 @@ void Game::AnimateMoveTank()
 	}
 
 }
+
+//metodo para animar el movimiento de la bala, es casi identico al de tanque
+void Game::animateBulletMove()
+{
+	int* path = this->activeBullet->getPathToGo();
+
+	//calcular destino y pixeles
+	int goalCell = path[this->activeBullet->getPathIndex()];
+	int goalRow = this->gameMap->toRow(goalCell);
+	int goalCol = this->gameMap->toCol(goalCell);
+
+
+	// convertir la fila y columna a pixeless
+	float goalX = goalCol * this->cellWidth;
+	float goalY = goalRow * this->cellHeight;
+
+	// calcular la diferencia entre la posicion actual y el destino
+	sf::Vector2f currentPos = this->activeBullet->getSpritePosition();
+
+	float dx = goalX - currentPos.x;
+	float dy = goalY - currentPos.y;
+
+	// calcular la distancia al destino con distancia euclidiana
+	float distance = std::sqrt(dx * dx + dy * dy);
+
+	if (distance < BULLET_SPEED) {
+		// colocar el sprite en la celda, actualizar posicion logica y aumentar la cantidad de celdas recorridas
+		this->activeBullet->setPosition(goalX, goalY);
+		this->activeBullet->setCurrentRow(goalRow);
+		this->activeBullet->setCurrentCol(goalCol);
+		this->activeBullet->incrementPathIndex();
+
+		// verificar si ya se recorrio todo el path
+		if (this->activeBullet->getPathIndex() >= this->activeBullet->GetPathSize()) {
+			this->activeBullet->setIsMoving(false);
+			this->activeBullet->clearPath();
+		}
+
+	}
+	else {
+
+		// obtener direccion movimiento
+		float normalX = dx / distance;
+		float normalY = dy / distance;
+
+		// mover el sprite BULLET_SPEED pixeles en la direccion correcta
+		this->activeBullet->moveSprite(normalX * BULLET_SPEED, normalY * BULLET_SPEED);
+
+	}
+}
+
 
 void Game::selectPathAlgorithm(int currentIndex, int GoalIndex)
 {
@@ -599,15 +693,74 @@ void Game::randomMove(int& randomRow, int& randomCol, int goalRow, int goalCol)
 	}
 }
 
+// dispara desde el tanque seleccionado hasta donde se haga click (derecho)
+void Game::shootBullet(sf::Vector2f mousePos) 
+{
+	// para guardar el path temporalmente
+	int* path;
+	int sizeOfPath;
+
+	//convertir click a coordenadas
+	int goalRow;
+	int goalCol;
+	this->mouseClickToCoords(mousePos, goalRow, goalCol);
+
+	//obtener el tanque que dispara y sus coords
+	Tank* shootingTank = this->players[this->currentPlayer]->getSelectedTank();
+
+	//si no hay tanque seleccionado no disparar
+	if (shootingTank == nullptr) {
+		return;
+	}
+
+	int tankRow = shootingTank->getCurrentRow();
+	int tankCol = shootingTank->getCurrentCol();
+
+
+	
+	//NOTA: ESTO NO SE SI CAUSA EL MISMO ERROR QUE TENIAMOS DEL NUEVO OBJETO, CREO QUE SI :/
+	this->AlgLineOfSight = new LineOfSight(this->gameMap->getMapMatrix());
+
+	//calcular el path con linea vista desde el tanque que disparo hasta el goal
+	this->AlgLineOfSight->LineOfSightAlgorithm(tankRow, tankCol, goalRow, goalCol);
+
+	path = this->AlgLineOfSight->getPath();
+	sizeOfPath = this->AlgLineOfSight->getPathSize();
+
+	// si el camino es inalcanzabkle no se dispara
+	if (path == nullptr || sizeOfPath == 0) {
+		return;
+	}
+
+	//creamos la bala donde esta el tanque que dispara y el camino que va a seguir
+	this->activeBullet = new Bullet(tankRow, tankCol, this->windowSize, this->windowGame);
+	this->activeBullet->setPathToGo(path, sizeOfPath);
+
+	this->players[this->currentPlayer]->deselectTank();
+	this->tankMode = false;
+}
+
 void Game::updateGame()
 {
+	//Esto va mas arriba para que no se puedan mover tanques mientras hay bala
+	if (this->activeBullet != nullptr && this->activeBullet->getIsMoving()) {
+		this->animateBulletMove();
+		return;
+	}
+
+	if (this->activeBullet != nullptr && !this->activeBullet->getIsMoving()) {
+		delete this->activeBullet;
+		this->activeBullet = nullptr;
+	}
+
 	if (this->activeTank != nullptr && this->activeTank->getIsMoving()) {
-		this->AnimateMoveTank();
+		this->AnimateTankMove();
 	}
 	if (this->activeTank != nullptr && !this->activeTank->getIsMoving()) {
 		this->activeTank = nullptr;
 
-		// notita: por aqui podriamos poner la logica de cambiar turnos
+		// notita: por aqui podriamos poner la logica de cambiar turnos, okk es simplemente llamar a switch turn aqui, esta facil,
+		// de hecho se puede hacer ya pero dejemoslo asi para seguir probando cosas facil
 	}
 	
 }
@@ -615,6 +768,10 @@ void Game::updateGame()
 //Renderiza la zona disponible/ no disponible
 void Game::renderAvailableMove() 
 {
+	//si esta en modo disparo (tankMode true) no mostrar
+	if (this->tankMode) {
+		return;
+	}
 
 	Tank* selectedTank = this->players[this->currentPlayer]->getSelectedTank();
 
@@ -691,7 +848,26 @@ void Game::renderGame()
 	highlight.setPosition(tank2->getCurrentCol() * cellWidth, tank2->getCurrentRow() * cellHeight);
 	this->windowGame->draw(highlight);
 
+
+	//NOTA ESTE IF ES POR MIENTRAS, es para un indicador del modo disparo, luego lo quitamos 
+	// si hay tanque seleccionado en modo disparo, cubrirlo de rojo transparente
+	if (this->tankMode && this->players[this->currentPlayer]->getSelectedTank() != nullptr) {
+
+		Tank* selected = this->players[this->currentPlayer]->getSelectedTank();
+		sf::RectangleShape shootIndicator(sf::Vector2f(cellWidth, cellHeight));
+
+		shootIndicator.setFillColor(sf::Color(255, 0, 0, 100));
+		shootIndicator.setPosition(selected->getCurrentCol() * cellWidth, selected->getCurrentRow() * cellHeight);
+
+		this->windowGame->draw(shootIndicator);
+	}
+
 	this->renderAvailableMove();
+
+	// dibujar la bala solo si existe
+	if (this->activeBullet != nullptr) {
+		this->activeBullet->createBullet();
+	}
 }
 
 // metodos de acceso a variables privadas

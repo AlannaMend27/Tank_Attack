@@ -7,6 +7,7 @@
 #include "dijkstra.h"
 #include "lineOfSight.h"
 #include "BFS.h"
+#include "Bullet.h"
 
 enum class GameState {
 	menu,
@@ -60,6 +61,9 @@ private:
 	Tank* tanks[4] = { nullptr, nullptr, nullptr, nullptr };
 	Tank* activeTank = nullptr;
 	
+	// bala
+	Bullet* activeBullet = nullptr;
+
 	// jugadores 
 	Player* players[2] = {nullptr, nullptr};
 
@@ -74,6 +78,9 @@ private:
 	// alto y ancho de una celda
 	float cellWidth;
 	float cellHeight;
+
+	//Modo disparo/moverse 0 es moverse 1 disparo
+	bool tankMode;
 
 	// algoritmos de busqueda de camino mas corto
 	Dijkstra* AlgDijkstra;
@@ -107,10 +114,12 @@ public:
 	void switchTurn();
 	void TankSelection(sf::Vector2f mousePos);
 	void mouseClickToCoords(sf::Vector2f mousePos, int& row, int& col);
+	void shootBullet(sf::Vector2f mousePos);
+	
 
 	// metodos relacionados al movimiento de los tanques
 	void moveTank(sf::Vector2f mousePos);
-	void AnimateMoveTank();
+	void AnimateTankMove();
 	void selectPathAlgorithm(int currentIndex, int GoalIndex);
 	void SetDijkstraPath(int currentIndex, int GoalIndex);
 	void SetLineOfSightPath(int currentIndex, int GoalIndex);
@@ -118,6 +127,7 @@ public:
 	void randomMove(int& randomRow, int& randomCol,int goalRow, int goalCol);
 	bool isThereATank(int row, int col);
 
-
+	//Metodos relacionados al movimiento de las balas
+	void animateBulletMove();
 
 };
