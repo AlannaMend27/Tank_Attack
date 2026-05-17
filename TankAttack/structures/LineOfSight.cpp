@@ -123,6 +123,7 @@ int* LineOfSight::getPath()
 	return this->path;
 }
 
+
 int LineOfSight::getLastRow() 
 {
 	return this->row;

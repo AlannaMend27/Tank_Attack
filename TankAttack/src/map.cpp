@@ -126,8 +126,6 @@ int Map::toIndex(int row, int col)
 	// convierte un indice de la matriz del mapa a un indice en la matriz de adyacencia del grafo
 	return row * MAP_SIZE + col;
 
-	// notita: ya esta el inverso :D , bieeeeeen :)
-
 }
 
 // convierten un indice de la matriz de adyacencia del grafo a un indice de la matriz del mapa

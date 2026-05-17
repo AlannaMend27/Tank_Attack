@@ -31,6 +31,7 @@ Game::~Game()
 	delete this->AlgDijkstra;
 	delete this->AlgLineOfSight;
 	delete this->AlgBFS;
+	//delete this->AStar;
 
 	delete this->activeBullet;
 }
@@ -335,6 +336,8 @@ void Game::initGame()
 		this->AlgDijkstra = nullptr;
 		this->AlgLineOfSight = nullptr;
 		this->AlgBFS = nullptr;
+		//this->AlgAStar = nullptr;
+
 
 		//bala actual
 		this->activeBullet = nullptr;

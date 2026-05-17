@@ -8,7 +8,7 @@
 #include "lineOfSight.h"
 #include "BFS.h"
 #include "Bullet.h"
-#include "DynamicArray.h"
+#include "AStar.h"
 
 enum class GameState {
 	menu,
@@ -87,6 +87,7 @@ private:
 	Dijkstra* AlgDijkstra;
 	LineOfSight* AlgLineOfSight;
 	BFS* AlgBFS;
+	AStar* AlgAStar;
 
 public:
 	// constructor y destructor
