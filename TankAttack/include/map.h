@@ -1,6 +1,7 @@
 #pragma once
 #include "grafo.h"
 #include "queue.h"	
+#include "GameConfig.h"
 #include <SFML/Graphics.hpp>
 
 class Map {
@@ -11,9 +12,8 @@ private:
 	graph* graphMap;
 	int size;
 
-	// cambiar tamano de la matriz
-	static const int mapSize = 15;
-	bool mapMatrix [mapSize][mapSize];
+	// matriz del mapa
+	int** mapMatrix;
 
 	// interfaz del mapa
 	
@@ -23,18 +23,14 @@ private:
 	sf::Texture wall;
 	sf::Sprite wallMap;
 
-	sf::Texture backgruound;
+	sf::Texture background;
 	sf::Sprite backgroundMap;
 
 	// metodos privados
 
 	void generateObstacles();
 	void generateGraph();
-	int toIndex(int row, int col);
-	int toRow(int index);
-	int toCol(int index);
 
-	bool isPositionValid(int row, int col);
 	bool isCorner(int row, int col);
 	bool isEveryNodeAccessible();
 
@@ -50,5 +46,23 @@ public:
 	void initMap();
 	void createMap();
 	void drawMap();
+
+	bool isPositionValid(int row, int col);
+	bool isCellFree(int row, int col);
+	const int* const* getAdjMatrix() const;
+	int** getMapMatrix()const;
+
+	// convierten indices de la matriz del juego a la matriz de adyacencia del grafo y viceversa
+	int toIndex(int row, int col);
+	int toRow(int index);
+	int toCol(int index);
+
+	//bloquea los nodos o los desbloquea dependiendo si hay un tanque 
+	void blockNode(int index);
+	void unblockNode(int index);
+
+	//Para linea vista
+	void blockMapNode(int row, int col);
+	void unblockMapNode(int row, int col);
 
 };

@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -134,17 +134,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Bullet.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\map.cpp" />
+    <ClCompile Include="src\Player.cpp" />
+    <ClCompile Include="src\Tank.cpp" />
+    <ClCompile Include="structures\AStar.cpp" />
+    <ClCompile Include="structures\BFS.cpp" />
+    <ClCompile Include="structures\Dijkstra.cpp" />
     <ClCompile Include="structures\grafo.cpp" />
+    <ClCompile Include="structures\LineOfSight.cpp" />
     <ClCompile Include="structures\Queue.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\AStar.h" />
+    <ClInclude Include="include\BFS.h" />
+    <ClInclude Include="include\Bullet.h" />
+    <ClInclude Include="include\dijkstra.h" />
     <ClInclude Include="include\Game.h" />
+    <ClInclude Include="include\GameConfig.h" />
     <ClInclude Include="include\grafo.h" />
+    <ClInclude Include="include\lineOfSight.h" />
     <ClInclude Include="include\map.h" />
+    <ClInclude Include="include\Player.h" />
     <ClInclude Include="include\queue.h" />
+    <ClInclude Include="include\tank.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
