@@ -28,10 +28,13 @@ Game::~Game()
 	delete this->players[0];
 	delete this->players[1];
 
+	delete this->powerUps[0];
+	delete this->powerUps[1];
+
 	delete this->AlgDijkstra;
 	delete this->AlgLineOfSight;
 	delete this->AlgBFS;
-	//delete this->AStar;
+	delete this->AlgAStar;
 
 	delete this->activeBullet;
 }
@@ -92,6 +95,13 @@ void Game::PollEvents() {
 					this->tankMode = !this->tankMode;
 				}
 			}
+			//shift poderes
+			if (this->gameEvent.key.code == sf::Keyboard::LShift && this->State == GameState::playing) {
+				if (this->powerUps[this->currentPlayer]->hasPowerUp()) {
+					this->powerUps[this->currentPlayer]->usePowerUp();
+					this->switchTurn();
+				}
+			}
 			break;
 
 		case sf::Event::MouseButtonPressed:
@@ -134,9 +144,6 @@ void Game::PollEvents() {
 					
 					}
 				}
-				
-			
-
 			}
 			//click derecho disparo
 			if (gameEvent.mouseButton.button == sf::Mouse::Right) {
@@ -148,7 +155,6 @@ void Game::PollEvents() {
 						this->shootBullet(mousePos);
 				}
 			}
-
 		}
 	}
 
@@ -321,6 +327,11 @@ void Game::initGame()
 		this->players[1] = new Player(2, this->tanks[2], this->tanks[3], false);
 		this->currentPlayer = 0;
 
+		// poderes, el j1 iconos de izq a der, j2 al reves por eso el true false
+		this->powerUps[0] = new PowerUp(this->windowGame, this->windowSize, 10);
+		this->powerUps[1] = new PowerUp(this->windowGame, this->windowSize, this->windowSize.x - 85);
+		this->turnCount = 0;
+
 		// actualizar bandera
 		this->GameInit = true;
 
@@ -336,7 +347,7 @@ void Game::initGame()
 		this->AlgDijkstra = nullptr;
 		this->AlgLineOfSight = nullptr;
 		this->AlgBFS = nullptr;
-		//this->AlgAStar = nullptr;
+		this->AlgAStar = nullptr;
 
 
 		//bala actual
@@ -362,6 +373,13 @@ void Game::switchTurn()
 	}
 
 	this->players[this->currentPlayer]->setTurn(true);
+
+	this->turnCount++;
+	// cada 4 turnos (se cambia en gameconfig) se genera un powerup
+	if (this->turnCount % TURNS_PER_POWERUP == 0) {
+		this->powerUps[0]->addRandom();
+		this->powerUps[1]->addRandom();
+	}
 }
 
 //Verifica si hay un tanque en la casilla
@@ -522,7 +540,10 @@ void Game::animateBulletMove()
 
 		//detectar si la bala pego en un tanque a la hora de ir a goal
 		if (this->isThereATank(goalRow, goalCol)) {
-			// nota : aqui podes poner que el tanque reciba danio o dentro de isthereatank
+
+			// nota : aqui podes poner que el tanque reciba danio 
+
+			//quita la bala
 			this->activeBullet->setIsMoving(false);
 			this->activeBullet->clearPath();
 			return;
@@ -689,6 +710,61 @@ void Game::SetBFSPath(int currentIndex, int goalIndex)
 	this->activeTank->setPathToGo(path, pathSize);
 }
 
+// le da el path a seguir al tanque por A* (power up de precision de ataque)
+void Game::SetAStarPath(int currentIndex, int goalIndex)
+{
+	int* path;
+	int pathSize;
+
+	//llamamos a A*, para el power up de la bala
+	this->AlgAStar = new AStar(this->gameMap->getAdjMatrix());
+	path = this->AlgAStar->AStarAlgorithm(currentIndex, goalIndex);
+	pathSize = this->AlgAStar->getPathSize();
+
+	if (path == nullptr || pathSize == 0) {
+		return;
+	}
+
+	// copiar el path sin el primer elemento (es el startIndex, la posicion actual de la bala), por que delete no puede borrar path+1
+	int newSize = pathSize - 1;
+	int* pathCopy = new int[newSize];
+	for (int i = 0; i < newSize; i++) {
+		pathCopy[i] = path[i + 1];
+	}
+
+	//le ponemos el path a la bala
+	this->activeBullet->setPathToGo(pathCopy, newSize);
+}
+
+// aplica el power up de precision de ataque (usa A* en vez de linea vista)
+void Game::applyAttackPrecision(int tankRow, int tankCol, int goalRow, int goalCol)
+{
+	int currentIndex = this->gameMap->toIndex(tankRow, tankCol);
+	int goalIndex = this->gameMap->toIndex(goalRow, goalCol);
+	this->SetAStarPath(currentIndex, goalIndex);
+	this->powerUps[this->currentPlayer]->clearActivePowerUp();
+}
+
+// aplica el power up de poder de ataque
+void Game::applyAttackPower()
+{
+	// nota: aqui aplicar el 100% danio
+	this->powerUps[this->currentPlayer]->clearActivePowerUp();
+}
+
+// aplica el power up de doble turno 
+void Game::applyDoubleTurn()
+{
+	// nota :aqui va la logica
+	this->powerUps[this->currentPlayer]->clearActivePowerUp();
+}
+
+void Game::applyMovePrecision()
+{
+	// nota: aqui va la logica
+	this->powerUps[this->currentPlayer]->clearActivePowerUp();
+}
+
 // mueve aleatoriamnete el tanque dentro de un rango definido
 void Game::randomMove(int& randomRow, int& randomCol, int goalRow, int goalCol)
 {
@@ -738,8 +814,22 @@ void Game::shootBullet(sf::Vector2f mousePos)
 	int tankRow = shootingTank->getCurrentRow();
 	int tankCol = shootingTank->getCurrentCol();
 
+	// si el jugador tiene precision de ataque activa, y la celda no es un muro usar A* en vez de linea vista
+	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::attackPrecision && this->gameMap->isCellFree(goalRow, goalCol)) {
+
+		//crea bala y objetivo
+		this->activeBullet = new Bullet(tankRow, tankCol, this->windowSize, this->windowGame);
+		this->activeBullet->setGoal(goalRow, goalCol);
+		//con A*
+		this->applyAttackPrecision(tankRow, tankCol, goalRow, goalCol);
+		this->players[this->currentPlayer]->deselectTank();
+		this->tankMode = false;
+		return;
+	}
+
 	//nota: aqui no bloqueamos los tanques, por que la idea es que reciban danio, la deteccion la hace isthereatank
 
+	//Disparo normal con linea vista
 	this->AlgLineOfSight = new LineOfSight(this->gameMap->getMapMatrix()); 
 	//calcular el path con linea vista desde el tanque que disparo hasta el goal
 	this->AlgLineOfSight->LineOfSightAlgorithm(tankRow, tankCol, goalRow, goalCol);
@@ -756,13 +846,18 @@ void Game::shootBullet(sf::Vector2f mousePos)
 	//creamos la bala donde esta el tanque que dispara y el camino que va a seguir
 	this->activeBullet = new Bullet(tankRow, tankCol, this->windowSize, this->windowGame);
 	this->activeBullet->setPathToGo(path, sizeOfPath);
-
 	// guardamos donde se hace click, para saber si llego al goal o choco con algo
 	this->activeBullet->setGoal(goalRow, goalCol);
 
 	// restamos la posicion del tanque para obtener la diferencia (cuanto se movio en cada eje)
 	int dirRow = this->AlgLineOfSight->getLastRow() - tankRow;
 	int dirCol = this->AlgLineOfSight->getLastCol() - tankCol;
+
+	//si es la misma del tanque no disparar
+	if (dirRow == 0 && dirCol == 0) {
+		return;
+	}
+
 
 	// normalizamos las direcciones en ambos ejes a -1, 0 o 1
 	// si dirRow es -1 = va hacia arriba, 0 = no se mueve en filas, 1 = va hacia abajo
@@ -772,7 +867,7 @@ void Game::shootBullet(sf::Vector2f mousePos)
 	//          dirRow = 0 → se queda en 0 (no se movia en ese eje)
 	// la idea es guardar esta direcion para que en calculatenext bounce le demos un giro de 90 grados 
 
-	if (dirCol != 0){
+	if (dirRow != 0){
 		dirRow = dirRow / abs(dirRow);
 	}
 
@@ -904,6 +999,7 @@ void Game::updateGame()
 	if (this->activeBullet != nullptr && !this->activeBullet->getIsMoving()) {
 		delete this->activeBullet;
 		this->activeBullet = nullptr;
+		this->switchTurn();
 	}
 
 	if (this->activeTank != nullptr && this->activeTank->getIsMoving()) {
@@ -911,9 +1007,9 @@ void Game::updateGame()
 	}
 	if (this->activeTank != nullptr && !this->activeTank->getIsMoving()) {
 		this->activeTank = nullptr;
+		this->switchTurn();
 
-		// notita: por aqui podriamos poner la logica de cambiar turnos, okk es simplemente llamar a switch turn aqui, esta facil,
-		// de hecho se puede hacer ya, pero dejemoslo asi para seguir probando cosas facil
+		// nota: ya está quitas la linea switchturn por si te molesta, sigue lo de cambiar con c cualquier cosa
 	}
 	
 }
@@ -1001,6 +1097,8 @@ void Game::renderGame()
 	highlight.setPosition(tank2->getCurrentCol() * cellWidth, tank2->getCurrentRow() * cellHeight);
 	this->windowGame->draw(highlight);
 
+	// mostrar los poderes del jugador actual
+	this->powerUps[this->currentPlayer]->drawPowerUp();
 
 	//NOTA ESTE IF ES POR MIENTRAS, es para un indicador del modo disparo, luego lo quitamos 
 	// si hay tanque seleccionado en modo disparo, cubrirlo de rojo transparente

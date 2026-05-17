@@ -32,20 +32,21 @@ void Queue::enqueue(int value)
     if (this->first == nullptr) {
         this->first = nodeToEnqueue;
         this->last = nodeToEnqueue;
+        this->size++;  
         return;
     }
-
     this->last->next = nodeToEnqueue;
     this->last = nodeToEnqueue;
     this->size++;
 }
 
-void Queue::dequeue()
+int Queue::dequeue()
 {
     if (this->first == nullptr) {
-        return;
+        return -1;
     }
     QueueNode* temporaryNode = this->first;
+    int value = temporaryNode->value;
     this->first = this->first->next;
 
     if (this->first == nullptr) {
@@ -53,13 +54,11 @@ void Queue::dequeue()
     }
     delete temporaryNode;
     this->size--;
+    return value;
 }
 
 int Queue::peek()
 {
-    /*if (this->first == nullptr) {
-        return;
-    }*/
 
     return this->first->value;
 }
@@ -68,3 +67,9 @@ bool Queue::isEmpty()
 {
     return this->first == nullptr;
 }
+
+int Queue::getSize()
+{
+    return this->size;
+}
+

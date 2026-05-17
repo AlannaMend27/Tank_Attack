@@ -24,7 +24,10 @@ const float TANK_SPEED = 0.3f;
 const float BULLET_SPEED = 0.3f;
 
 //Rebotes maximos de la bala
-const float MAX_BULLET_BOUNCES = 3;
+const int MAX_BULLET_BOUNCES = 3;
+
+//Cantidad de turnos para un power up
+const int TURNS_PER_POWERUP = 4;
 
 // Tiempo del juego
 // const int GAME_TIME = 300;

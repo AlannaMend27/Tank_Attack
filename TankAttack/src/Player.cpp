@@ -12,7 +12,7 @@ Player::Player(int playerID, Tank* tank1, Tank* tank2, bool isMyTurn)
 
 Player::~Player()
 {
-	//
+	delete this->powerUp;
 }
 
 //Metodos publicos
@@ -58,4 +58,9 @@ Tank* Player::getTank(int index)
 Tank* Player::getSelectedTank()
 {
 	return this->selectedTank;
+}
+
+PowerUp* Player::getPowerUp() 
+{
+	return this->powerUp;
 }

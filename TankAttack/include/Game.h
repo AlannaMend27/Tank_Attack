@@ -9,6 +9,7 @@
 #include "BFS.h"
 #include "Bullet.h"
 #include "AStar.h"
+#include "PowerUp.h"
 
 enum class GameState {
 	menu,
@@ -68,9 +69,14 @@ private:
 	// jugadores 
 	Player* players[2] = {nullptr, nullptr};
 
+	// poderes
+	PowerUp* powerUps[2];
+
 	//0 j1,1 j2
 	int currentPlayer = 0;
 
+	// cantidad de turnos que llevan
+	int turnCount;
 
 	// posicion de los clicks en la matriz
 	int mouseRow;
@@ -133,5 +139,11 @@ public:
 	//Metodos relacionados al movimiento de las balas
 	void animateBulletMove();
 	void calculateNextBounce();
-
+	void SetAStarPath(int currentIndex, int goalIndex);
+	
+	//Metodos relacionados a los power uops
+	void applyAttackPrecision(int tankRow, int tankCol, int goalRow, int goalCol);
+	void applyAttackPower();
+	void applyDoubleTurn();
+	void applyMovePrecision();
 };
