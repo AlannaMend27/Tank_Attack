@@ -139,6 +139,7 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\map.cpp" />
     <ClCompile Include="src\Player.cpp" />
+    <ClCompile Include="src\PowerUp.cpp" />
     <ClCompile Include="src\Tank.cpp" />
     <ClCompile Include="structures\AStar.cpp" />
     <ClCompile Include="structures\BFS.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="include\lineOfSight.h" />
     <ClInclude Include="include\map.h" />
     <ClInclude Include="include\Player.h" />
+    <ClInclude Include="include\PowerUp.h" />
     <ClInclude Include="include\queue.h" />
     <ClInclude Include="include\tank.h" />
   </ItemGroup>

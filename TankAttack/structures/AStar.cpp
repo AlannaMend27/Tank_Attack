@@ -30,7 +30,6 @@ AStar::~AStar()
 
 int AStar::heuristic(int index)
 {
-	int manhattanDistance;
 
 	int currentRow = index / MAP_SIZE;
 	int currentCol = index % MAP_SIZE;
@@ -38,7 +37,7 @@ int AStar::heuristic(int index)
 	int colGoal = this->goalIndex % MAP_SIZE;
 	
 	//la misma formula de la calcu
-	manhattanDistance = abs(currentRow - rowGoal) + abs(currentCol - colGoal);
+	int manhattanDistance = abs(currentRow - rowGoal) + abs(currentCol - colGoal);
 	return manhattanDistance;
 
 }
@@ -98,6 +97,12 @@ int* AStar::AStarAlgorithm(int startIndex, int goalIndex)
 
 		// encontrar el nodo con menor f (costo) y marcarlo como visitado
 		int current = this->minorElement();
+
+		//si no hay nodos disponibles, no se puede legar al objetivo 
+		if (current == -1) {
+			break;
+		}
+
 		this->visited[current] = true;
 		this->contQueue--;
 
@@ -114,7 +119,7 @@ int* AStar::AStarAlgorithm(int startIndex, int goalIndex)
 				if (this->gCost[current] != INT_MAX && newGCcost < this->gCost[i]) {
 					this->previous[i] = current;
 					this->gCost[i] = newGCcost;
-					// diferencia con dijkstra, fCostr tiene manhattan
+					// diferencia con dijkstra, fCost tiene manhattan
 					this->fCost[i] = newGCcost + this->heuristic(i);
 					this->priorityQueue[i] = this->fCost[i];
 					this->contQueue++;

@@ -1,5 +1,6 @@
 #pragma once
 #include "tank.h"
+#include "PowerUp.h"
 
 class Player {
 private:
@@ -11,6 +12,7 @@ private:
 
 	//Tanque seleccionado actualmente
 	Tank* selectedTank = nullptr; 
+	PowerUp* powerUp;
 
 public:
 	// constructor y destructor
@@ -27,5 +29,6 @@ public:
 		
 	Tank* getTank(int index);
 	Tank* getSelectedTank();
+	PowerUp* getPowerUp();
 
 };

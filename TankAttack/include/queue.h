@@ -27,8 +27,13 @@ public:
 
     //Metodos
     void enqueue(int value);
-    void dequeue();
+    int dequeue();
     int peek();
+    int getSize();
+    int peekAt(int index);
     bool isEmpty();
+
+
+    QueueNode* getFirst();
 
 };
