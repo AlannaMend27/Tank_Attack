@@ -42,6 +42,10 @@ private:
 	sf::Texture background;
 	sf::Sprite backgroundMenu;
 
+	// fondo del margen
+	sf::Texture backMargin;
+	sf::Sprite backgroundMargin;
+
 	// fuente principal
 	sf::Font font;
 
@@ -50,6 +54,41 @@ private:
 	sf::RectangleShape closeButton;
 	sf::Text playText;
 	sf::Text closeText;
+
+	// elemntos del margen
+	sf::Text TitleText1;
+	sf::Text TitleText2;
+	sf::Text Player1Text1;
+	sf::Text Player1Text2;
+	sf::Text Player1Text3;
+	sf::Text Player1Text4;
+
+	sf::Text Player2Text1;
+	sf::Text Player2Text2;
+	sf::Text Player2Text3;
+	sf::Text Player2Text4;
+
+	// imagenes de tanques y su vida.
+	sf::Texture pinkTankTexture;
+	sf::Sprite pinkTank;
+	sf::Texture pinkTankLifeTexture;
+	sf::Sprite pinkTankLife;
+
+	sf::Texture yellowTankTexture;
+	sf::Sprite yellowTank;
+	sf::Texture yellowTankLifeTexture;
+	sf::Sprite yellowTankLife;
+
+	sf::Texture redTankTexture;
+	sf::Sprite redTank;
+	sf::Texture redTankLifeTexture;
+	sf::Sprite redTankLife;
+
+	sf::Texture blueTankTexture;
+	sf::Sprite blueTank;
+	sf::Texture blueTankLifeTexture;
+	sf::Sprite blueTankLife;
+
 
 	// ATRIBUTOS DEL JUEGO
 	sf::RectangleShape backButton;
@@ -118,6 +157,7 @@ public:
 	void initGame();
 	void updateGame();
 	void renderGame();
+	void renderMargin();
 	void renderAvailableMove();
 	void switchTurn();
 	void TankSelection(sf::Vector2f mousePos);
@@ -146,4 +186,7 @@ public:
 	void applyAttackPower();
 	void applyDoubleTurn();
 	void applyMovePrecision();
+
+	// Metodos relacionados con la vida de los tanques
+	void applyAttackToTank();
 };

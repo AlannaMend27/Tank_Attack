@@ -13,7 +13,7 @@ Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, 
 	this->window = window;
 	this->texturePath = texturePath;
 	this->cellHeight = (float)this->windowSize.y / MAP_SIZE;
-	this->cellWidth = (float)this->windowSize.x / MAP_SIZE;
+	this->cellWidth = (float)this->windowSize.x / (MAP_SIZE + MARGIN_WIDTH);
 
 	// posicion visual (para movimiento mientras no se ha llegado al destino para establecer la posicion logica)
 	this->visualX = this->currentCol * this->cellWidth;
@@ -27,6 +27,10 @@ Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, 
 
 	// id (color) del tanque
 	this->tankID = id;
+
+	// variables de vida del tanque
+	this->lifePoints = 100;
+	this->isAlive = true;
 
 	this->initTank();
 
@@ -203,6 +207,26 @@ void Tank::clearPath()
 	this->pathIndex = 0;
 	this->pathSize = 0;
 
+}
+
+void Tank::receiveAttack()
+{
+	if (this->tankID == "amarillo" || this->tankID == "rojo") {
+		this->lifePoints -= 50;
+	}
+	else {
+		this->lifePoints -= 25;
+	}
+
+	// si ya no queda vida
+	if (this->lifePoints == 0) {
+		this->isAlive = false;
+	}
+}
+
+bool Tank::getIsAlive()
+{
+	return this->isAlive;
 }
 
 //Sirve para el rango de seleccion de un tanque al hacer click

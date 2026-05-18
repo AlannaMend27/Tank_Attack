@@ -5,6 +5,9 @@
 // Tamanio del mapa
 const int MAP_SIZE = 15;
 
+// Tamanio del margen de informacion del juego (tamanio de 2 celdas)
+const int MARGIN_WIDTH = 2;
+
 // cantidad de nodos del grafo
 const int GRAPH_SIZE = MAP_SIZE * MAP_SIZE;
 

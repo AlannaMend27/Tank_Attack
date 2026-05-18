@@ -27,6 +27,10 @@ private:
 	float visualX;
 	float visualY;
 
+	// vida del tanque 
+	int lifePoints;
+	bool isAlive;
+
 	//metodos privados
 	void initTank();
 	void renderTank();
@@ -57,6 +61,10 @@ public:
 	void setCurrentRow(int row);
 	void setCurrentCol(int col);
 	void clearPath();
+
+	// metodos de que controlan la vida del tanque
+	void receiveAttack();
+	bool getIsAlive();
 
 
 	sf::FloatRect getArea();

@@ -23,7 +23,8 @@ private:
 	Queue* powerUpQueue;
 	//-1 si no hay ninguno
 	int activePowerUp;
-	float iconPosX;
+	int iconPosX;
+	int iconPosY;
 
 	sf::Font font;
 	sf::Text powerUpCount;
@@ -42,7 +43,7 @@ private:
 
 public:
 	//constructor y destructor
-	PowerUp(sf::RenderWindow* window, sf::Vector2u windowSize, float iconPosX);
+	PowerUp(sf::RenderWindow* window, sf::Vector2u windowSize, int iconPosX, int iconPosY);
 	~PowerUp();
 
 	//Metodos publicos
