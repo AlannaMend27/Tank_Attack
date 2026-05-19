@@ -6,7 +6,7 @@ Bullet::Bullet(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* wind
 	this->currentRow = row;
 	this->currentCol = col;
 	this->window = window;
-	this->cellWidth = (float)windowSize.x / MAP_SIZE;
+	this->cellWidth = (float)windowSize.x / (MAP_SIZE + MARGIN_WIDTH);
 	this->cellHeight = (float)windowSize.y / MAP_SIZE;
 
 	//posicion visial inicial

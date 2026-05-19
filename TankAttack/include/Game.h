@@ -14,7 +14,8 @@
 enum class GameState {
 	menu,
 	playing,
-	exit
+	exit,
+	gameOver
 };
 
 class Game {
@@ -42,6 +43,10 @@ private:
 	sf::Texture background;
 	sf::Sprite backgroundMenu;
 
+	// fondo del margen
+	sf::Texture backMargin;
+	sf::Sprite backgroundMargin;
+
 	// fuente principal
 	sf::Font font;
 
@@ -50,6 +55,51 @@ private:
 	sf::RectangleShape closeButton;
 	sf::Text playText;
 	sf::Text closeText;
+
+	// elemntos del margen
+	sf::Text TitleText1;
+	sf::Text TitleText2;
+	sf::Text Player1Text1;
+	sf::Text Player1Text2;
+	sf::Text Player1Text3;
+	sf::Text Player1Text4;
+
+	sf::Text Player2Text1;
+	sf::Text Player2Text2;
+	sf::Text Player2Text3;
+	sf::Text Player2Text4;
+
+	// imagenes de tanques y su vida.
+	sf::Texture pinkTankTexture;
+	sf::Sprite pinkTank;
+	sf::Texture pinkTankLifeTexture;
+	sf::Sprite pinkTankLife;
+
+	sf::Texture yellowTankTexture;
+	sf::Sprite yellowTank;
+	sf::Texture yellowTankLifeTexture;
+	sf::Sprite yellowTankLife;
+
+	sf::Texture redTankTexture;
+	sf::Sprite redTank;
+	sf::Texture redTankLifeTexture;
+	sf::Sprite redTankLife;
+
+	sf::Texture blueTankTexture;
+	sf::Sprite blueTank;
+	sf::Texture blueTankLifeTexture;
+	sf::Sprite blueTankLife;
+
+	// elementos del gameOver
+	sf::RectangleShape gameOverBackground;
+	sf::RectangleShape gameOverBox;
+	sf::Text winnerText;
+	sf::Text congratsText;
+	sf::RectangleShape playAgainButton;
+	sf::Text playAgainText;
+	sf::RectangleShape backMenuButton;
+	sf::Text backMenuText;
+
 
 	// ATRIBUTOS DEL JUEGO
 	sf::RectangleShape backButton;
@@ -68,6 +118,9 @@ private:
 
 	// jugadores 
 	Player* players[2] = {nullptr, nullptr};
+
+	// numero del jugador ganador(0 -ninguno, 1 - jugador uno, 2 - jugador dos)
+	int winner;
 
 	// poderes
 	PowerUp* powerUps[2];
@@ -95,6 +148,12 @@ private:
 	BFS* AlgBFS;
 	AStar* AlgAStar;
 
+	// reloj de la partida
+	sf::Clock gameClock;        
+	float passedTime;         
+	sf::Text timerText;
+	sf::RectangleShape backClock;
+
 public:
 	// constructor y destructor
 	Game();
@@ -118,6 +177,7 @@ public:
 	void initGame();
 	void updateGame();
 	void renderGame();
+	void renderMargin();
 	void renderAvailableMove();
 	void switchTurn();
 	void TankSelection(sf::Vector2f mousePos);
@@ -135,6 +195,7 @@ public:
 	void SetBFSPath(int currentIndex, int GoalIndex);
 	void randomMove(int& randomRow, int& randomCol,int goalRow, int goalCol);
 	bool isThereATank(int row, int col);
+	int tankInPos(int row, int col);
 
 	//Metodos relacionados al movimiento de las balas
 	void animateBulletMove();
@@ -146,4 +207,14 @@ public:
 	void applyAttackPower();
 	void applyDoubleTurn();
 	void applyMovePrecision();
+
+	// Metodos relacionados con la vida de los tanques y la condicion de gane
+	void applyAttackToTank(int tankIndex);
+	void IsThereAWin();
+	void WinnerTimeUp();
+	void updateClock();
+	void initGameOver();
+	void updateGameOver();
+	void renderGameOver();
+
 };

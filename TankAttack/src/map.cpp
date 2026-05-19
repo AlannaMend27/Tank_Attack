@@ -234,16 +234,19 @@ bool Map::isEveryNodeAccessible()
 
 void Map::renderMap()
 {
+	// obtener tamano de celdas y escalar muros a este tamano
+	float cellWidth = (float)this->windowSize.x / (MAP_SIZE + MARGIN_WIDTH);
+	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
+
+	// calcular el ancho del mapa tomando en cuenta el margen lateral
+	float mapWidthPixels = this->windowSize.x - (MARGIN_WIDTH * cellWidth);
+
 	// dibujar mapa de fondo
 	this->backgroundMap.setScale(
-		(float)this->windowSize.x / this->background.getSize().x,
-		(float)this->windowSize.y / this->background.getSize().y
+		mapWidthPixels / this->background.getSize().x,
+		(float)this->windowSize.y/ this->background.getSize().y
 	);
 	this->window->draw(this->backgroundMap);
-
-	// obtener tamano de celdas y escalar muros a este tamano
-	float cellWidth = (float)this->windowSize.x / MAP_SIZE;
-	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
 
 	this->wallMap.setScale(cellWidth / this->wall.getSize().x, cellHeight / this->wall.getSize().y);
 

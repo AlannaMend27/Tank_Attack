@@ -1,11 +1,12 @@
 #include "PowerUp.h"
 
 // constructor y destructor
-PowerUp::PowerUp(sf::RenderWindow* window, sf::Vector2u windowSize, float iconPosX) {
+PowerUp::PowerUp(sf::RenderWindow* window, sf::Vector2u windowSize, int iconPosX, int iconPosY) {
 	
 	this->window = window;
 	this->windowSize = windowSize;
 	this->iconPosX = iconPosX;
+	this->iconPosY = iconPosY;
 	this->activePowerUp = -1;
 
 	this->powerUpQueue = new Queue();
@@ -30,7 +31,7 @@ PowerUp::~PowerUp()
 //dibuja los iconos de los power ups en la pantalla, muestra solo el primero, para los demas lleva un contador tipo +cantidad de powerups
 void PowerUp::renderIcons()
 {
-	float iconSize = 75.f;
+	float iconSize =80.f;
 	//espacio entre el borde inferior y icono
 	float margin = 10;
 
@@ -61,9 +62,7 @@ void PowerUp::renderIcons()
 	icon.setScale(iconSize / icon.getTexture()->getSize().x, iconSize / icon.getTexture()->getSize().y);
 
 	//posicionamos
-	float x = this->iconPosX;
-	float y = this->windowSize.y - iconSize - margin;
-	icon.setPosition(x, y);
+	icon.setPosition(this->iconPosX, this->iconPosY);
 	this->window->draw(icon);
 
 	// si hay mas de un power, mostrar cuantos hay adicionales
@@ -71,9 +70,9 @@ void PowerUp::renderIcons()
 		sf::Text countText;
 		countText.setFont(this->font);
 		countText.setString("+" + std::to_string(this->powerUpQueue->getSize() - 1));
-		countText.setCharacterSize(40);
-		countText.setFillColor(sf::Color::Red);
-		countText.setPosition(x-25 + iconSize, y + iconSize / 2);
+		countText.setCharacterSize(35);
+		countText.setFillColor(sf::Color::Yellow);
+		countText.setPosition(this->iconPosX-25 + iconSize, this->iconPosY + iconSize / 2);
 		this->window->draw(countText);
 	}
 }

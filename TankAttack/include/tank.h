@@ -14,6 +14,8 @@ private:
 	sf::RenderWindow* window;
 	float cellWidth;
 	float cellHeight;
+	float scaleX;
+	float scaleY;
 
 	std::string texturePath; //Por que son 4 texturas
 	sf::Texture tankTexture;
@@ -26,6 +28,11 @@ private:
 	bool isMoving;
 	float visualX;
 	float visualY;
+
+	// vida del tanque 
+	int lifePoints;
+	bool isAlive;
+	int contAttacks;
 
 	//metodos privados
 	void initTank();
@@ -58,6 +65,11 @@ public:
 	void setCurrentCol(int col);
 	void clearPath();
 
+	// metodos de que controlan la vida del tanque, logica y visual
+	void receiveAttack();
+	bool getIsAlive();
+	void changeSprite();
+	int getLifeTank();
 
 	sf::FloatRect getArea();
 };
