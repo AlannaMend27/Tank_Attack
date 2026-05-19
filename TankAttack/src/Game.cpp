@@ -144,6 +144,21 @@ void Game::PollEvents() {
 					
 					}
 				}
+				if (this->State == GameState::gameOver) {
+					// verificar los botones en la pantalla de game over
+					if (this->playAgainButton.getGlobalBounds().contains(mousePos)) {
+						// reiniciar el juego
+						this->GameInit = false;
+						this->State = GameState::playing;
+						this->initGame();
+						this->gameClock.restart();
+					}
+					if (this->backMenuButton.getGlobalBounds().contains(mousePos)) {
+						// volver al menu
+						this->GameInit = false;
+						this->State = GameState::menu;
+					}
+				}
 			}
 			//click derecho disparo
 			if (gameEvent.mouseButton.button == sf::Mouse::Right) {
@@ -155,6 +170,8 @@ void Game::PollEvents() {
 						this->shootBullet(mousePos);
 				}
 			}
+
+
 		}
 	}
 
@@ -179,8 +196,10 @@ void Game::update()
 	case GameState::playing:
 		this->updateGame();
 		break;
+	case GameState::gameOver:
+		this->updateGameOver();
+		break;
 	}
-
 }
 
 void Game::render() {
@@ -192,6 +211,10 @@ void Game::render() {
 
 	case GameState::playing:
 		this->renderGame();
+		break;
+
+    case GameState::gameOver:   
+		this->renderGameOver();
 		break;
 	}
 
@@ -308,18 +331,18 @@ void Game::initGame()
 		this->cellHeight = ((float)this->windowSize.y) / MAP_SIZE;
 
 		//Boton de volver
-		this->backButton.setSize(sf::Vector2f(200, 60));
+		this->backButton.setSize(sf::Vector2f(100, 30));
 		this->backButton.setFillColor(sf::Color(9, 110, 150));
 		this->backButton.setOutlineColor(sf::Color(82, 206, 255));
-		this->backButton.setOutlineThickness(-5.f);
-		this->backButton.setPosition(860, 20);
+		this->backButton.setOutlineThickness(-1.f);
+		this->backButton.setPosition(1760, 1165);
 
 		//Texto del boton volver
 		this->backText.setFont(font);
 		this->backText.setString("Volver");
-		this->backText.setCharacterSize(30);
+		this->backText.setCharacterSize(16);
 		this->backText.setFillColor(sf::Color::White);
-		this->backText.setPosition(905, 30);
+		this->backText.setPosition(1785, 1170);
 
 		// MARGEN
 		this->backMargin.loadFromFile("assets/textures/marginBack.png");
@@ -416,27 +439,28 @@ void Game::initGame()
 		this->yellowTankLife.setScale(0.150f, 0.150f);
 
 		// jugador 2
-		// tanque rojo (fila 1 del jugador 2)
-		this->redTankTexture.loadFromFile("assets/textures/tank_2.png");
-		this->redTank.setTexture(this->redTankTexture);
-		this->redTank.setPosition(1750, 750);
-		this->redTank.setScale(this->cellWidth / this->redTankTexture.getSize().x, this->cellHeight / this->redTankTexture.getSize().y);
-
-		this->redTankLifeTexture.loadFromFile("assets/textures/vida_100.png");
-		this->redTankLife.setTexture(this->redTankLifeTexture);
-		this->redTankLife.setPosition(1700, 775);
-		this->redTankLife.setScale(0.150f, 0.150f);
-
 		// tanque azul (fila 2 del jugador 2)
-		this->blueTankTexture.loadFromFile("assets/textures/tank_3.png");
+		this->blueTankTexture.loadFromFile("assets/textures/tank_2.png");
 		this->blueTank.setTexture(this->blueTankTexture);
-		this->blueTank.setPosition(1750, 915);
+		this->blueTank.setPosition(1750, 750);
 		this->blueTank.setScale(this->cellWidth / this->blueTankTexture.getSize().x, this->cellHeight / this->blueTankTexture.getSize().y);
 
 		this->blueTankLifeTexture.loadFromFile("assets/textures/vida_100.png");
 		this->blueTankLife.setTexture(this->blueTankLifeTexture);
-		this->blueTankLife.setPosition(1700, 940);
+		this->blueTankLife.setPosition(1700, 775);
 		this->blueTankLife.setScale(0.150f, 0.150f);
+
+		// tanque rojo (fila 1 del jugador 2)
+		this->redTankTexture.loadFromFile("assets/textures/tank_3.png");
+		this->redTank.setTexture(this->redTankTexture);
+		this->redTank.setPosition(1750, 915);
+		this->redTank.setScale(this->cellWidth / this->redTankTexture.getSize().x, this->cellHeight / this->redTankTexture.getSize().y);
+
+		this->redTankLifeTexture.loadFromFile("assets/textures/vida_100.png");
+		this->redTankLife.setTexture(this->redTankLifeTexture);
+		this->redTankLife.setPosition(1700, 940);
+		this->redTankLife.setScale(0.150f, 0.150f);
+
 
 
 		//Tanques en las esquinas (MAP_SIZE -1)
@@ -452,7 +476,7 @@ void Game::initGame()
 
 		// poderes, el j1 iconos de izq a der, j2 al reves por eso el true false
 		this->powerUps[0] = new PowerUp(this->windowGame, this->windowSize, 1765, 560);
-		this->powerUps[1] = new PowerUp(this->windowGame, this->windowSize, 1765, 1090);
+		this->powerUps[1] = new PowerUp(this->windowGame, this->windowSize, 1765, 1070);
 		this->turnCount = 0;
 
 		// actualizar bandera
@@ -471,9 +495,142 @@ void Game::initGame()
 		//bala actual
 		this->activeBullet = nullptr;
 
+		// establecer ningun ganador por el momento
+		this->winner = 0;
+
 	}
-	//Esto siempre para que siempre se genere un mapa nuevo
+	//siempre generamos un mapa nuevo
 	this->gameMap->createMap();
+
+	// siempre reiniciamos el reloj
+	this->passedTime = 0.f;
+	this->gameClock.restart(); 
+
+	// texto del reloj
+	this->timerText.setFont(this->font);
+	this->timerText.setCharacterSize(30);
+	this->timerText.setFillColor(sf::Color::White);
+	this->timerText.setPosition(820, 18);
+
+	// fondo del reloj
+	this->backClock.setSize(sf::Vector2f(100, 50));
+	this->backClock.setFillColor(sf::Color(9, 110, 150));
+	this->backClock.setOutlineColor(sf::Color(82, 206, 255));
+	this->backClock.setOutlineThickness(-1.f);
+	this->backClock.setPosition(800, 10);
+
+}
+
+void Game::initGameOver()
+{
+	// fondo semitransparente que cubre toda la pantalla
+	this->gameOverBackground.setSize(sf::Vector2f(this->windowSize.x, this->windowSize.y));
+	this->gameOverBackground.setFillColor(sf::Color(0, 0, 0, 180));
+	this->gameOverBackground.setPosition(0.f, 0.f);
+
+	// cuadro central donde va todo el contenido
+	float boxWidth = 600.f;
+	float boxHeight = 400.f;
+	float boxX = (this->windowSize.x - boxWidth) / 2.f;
+	float boxY = (this->windowSize.y - boxHeight) / 2.f;
+
+	this->gameOverBox.setSize(sf::Vector2f(boxWidth, boxHeight));
+	this->gameOverBox.setFillColor(sf::Color(9, 110, 150));
+	this->gameOverBox.setOutlineColor(sf::Color(82, 206, 255));
+	this->gameOverBox.setOutlineThickness(-5.f);
+	this->gameOverBox.setPosition(boxX, boxY);
+
+	// texto del ganador, se actualiza en checkWinner con el nombre del jugador
+	this->winnerText.setFont(this->font);
+	this->winnerText.setCharacterSize(50);
+	this->winnerText.setFillColor(sf::Color::White);
+
+	if (this->winner != 0) {
+		this->winnerText.setString("Jugador " + std::to_string(this->winner) + " gana!");
+	}
+	else {
+		this->winnerText.setString("Empate, ambos ganan!");
+	}
+	// centrar el texto dentro del cuadro
+	float textX = boxX + (boxWidth - this->winnerText.getGlobalBounds().width) / 2.f;
+	this->winnerText.setPosition(textX, boxY + 40.f);
+
+	// texto de felicitacion debajo del ganador
+	this->congratsText.setFont(this->font);
+	this->congratsText.setCharacterSize(28);
+	this->congratsText.setFillColor(sf::Color(82, 206, 255));
+	this->congratsText.setString("Felicidades, excelente partida!");
+	float congratsX = boxX + (boxWidth - this->congratsText.getGlobalBounds().width) / 2.f;
+	this->congratsText.setPosition(congratsX, boxY + 130.f);
+
+	// boton jugar de nuevo
+	this->playAgainButton.setSize(sf::Vector2f(220.f, 60.f));
+	this->playAgainButton.setFillColor(sf::Color(9, 110, 150));
+	this->playAgainButton.setOutlineColor(sf::Color(82, 206, 255));
+	this->playAgainButton.setOutlineThickness(-5.f);
+	this->playAgainButton.setPosition(boxX + 50.f, boxY + 300.f);
+
+	this->playAgainText.setFont(this->font);
+	this->playAgainText.setCharacterSize(22);
+	this->playAgainText.setFillColor(sf::Color::White);
+	this->playAgainText.setString("Jugar de nuevo");
+	this->playAgainText.setPosition(boxX + 70.f, boxY + 312.f);
+
+	// boton volver al menu
+	this->backMenuButton.setSize(sf::Vector2f(220.f, 60.f));
+	this->backMenuButton.setFillColor(sf::Color(9, 110, 150));
+	this->backMenuButton.setOutlineColor(sf::Color(82, 206, 255));
+	this->backMenuButton.setOutlineThickness(-5.f);
+	this->backMenuButton.setPosition(boxX + 330.f, boxY + 300.f);
+
+	this->backMenuText.setFont(this->font);
+	this->backMenuText.setCharacterSize(22);
+	this->backMenuText.setFillColor(sf::Color::White);
+	this->backMenuText.setString("Volver al menu");
+	this->backMenuText.setPosition(boxX + 355.f, boxY + 312.f);
+}
+
+// maneja el hoover de los botones de ventana de game over
+void Game::updateGameOver()
+{
+	sf::Vector2f mousePos = this->windowGame->mapPixelToCoords(
+		sf::Mouse::getPosition(*this->windowGame)
+	);
+
+	// hover boton jugar de nuevo
+	if (this->playAgainButton.getGlobalBounds().contains(mousePos)) {
+		this->playAgainButton.setFillColor(sf::Color(4, 77, 107));
+	}
+	else {
+		this->playAgainButton.setFillColor(sf::Color(9, 110, 150));
+	}
+
+	// hover boton volver al menu
+	if (this->backMenuButton.getGlobalBounds().contains(mousePos)) {
+		this->backMenuButton.setFillColor(sf::Color(4, 77, 107));
+	}
+	else {
+		this->backMenuButton.setFillColor(sf::Color(9, 110, 150));
+	}
+}
+
+// diuja la ventana de gameover
+void Game::renderGameOver()
+{
+	// primero renderizar el juego de fondo para que se vea detras del cuadro
+	this->renderGame();
+
+	// encima dibujar un cuadradito semistransparente
+	this->windowGame->draw(this->gameOverBackground);
+
+	// dibujar el cuadro y su contenido
+	this->windowGame->draw(this->gameOverBox);
+	this->windowGame->draw(this->winnerText);
+	this->windowGame->draw(this->congratsText);
+	this->windowGame->draw(this->playAgainButton);
+	this->windowGame->draw(this->playAgainText);
+	this->windowGame->draw(this->backMenuButton);
+	this->windowGame->draw(this->backMenuText);
 }
 
 void Game::switchTurn()
@@ -494,7 +651,8 @@ void Game::switchTurn()
 	this->players[this->currentPlayer]->setTurn(true);
 
 	this->turnCount++;
-	// cada 4 turnos (se cambia en gameconfig) se genera un powerup
+
+	// cada 4 turnos se genera un powerup
 	if (this->turnCount % TURNS_PER_POWERUP == 0) {
 		this->powerUps[0]->addRandom();
 		this->powerUps[1]->addRandom();
@@ -513,6 +671,17 @@ bool Game::isThereATank(int row, int col)
 	return false;
 }
 
+//Devuelve el indice tanque que hay en la casilla (para luego buscarlo usando TANKS arreglo que contiene todos los tanquecitos)
+int Game::tankInPos(int row, int col)
+{
+	//Si alguno de los 4 tanques esta en la posicion es true
+	for (int i = 0; i < 4; i++) {
+		if (this->tanks[i]->getCurrentRow() == row && this->tanks[i]->getCurrentCol() == col) {
+			return i;
+		}
+	}
+}
+
 //Verifica si el jugador hizo click en alguno de sus tanques
 void Game::TankSelection(sf::Vector2f mousePos) {
 
@@ -520,10 +689,10 @@ void Game::TankSelection(sf::Vector2f mousePos) {
 	Tank* tank2 = this->players[this->currentPlayer]->getTank(1);
 
 	//Si el click es dentro del area del tanque 1/2 lo selecciona
-	if (tank1->getArea().contains(mousePos)) {
+	if (tank1->getArea().contains(mousePos) && tank1->getIsAlive()) {
 		this->players[this->currentPlayer]->selectTank(tank1);
 	}
-	if (tank2->getArea().contains(mousePos)) {
+	if (tank2->getArea().contains(mousePos) && tank2->getIsAlive()) {
 		this->players[this->currentPlayer]->selectTank(tank2);
 	}
 }
@@ -660,11 +829,17 @@ void Game::animateBulletMove()
 		//detectar si la bala pego en un tanque a la hora de ir a goal
 		if (this->isThereATank(goalRow, goalCol)) {
 
-			// nota : aqui podes poner que el tanque reciba danio 
-
 			//quita la bala
 			this->activeBullet->setIsMoving(false);
 			this->activeBullet->clearPath();
+
+			// aplica el danio al tanque
+			int tankIndex = this->tankInPos(goalRow, goalCol);
+			this->tanks[tankIndex]->receiveAttack();
+
+			//cambiar estado del tanque en interfaz
+			this->applyAttackToTank(tankIndex);
+
 			return;
 		}
 
@@ -884,10 +1059,123 @@ void Game::applyMovePrecision()
 	this->powerUps[this->currentPlayer]->clearActivePowerUp();
 }
 
-void Game::applyAttackToTank()
+void Game::applyAttackToTank(int tankIndex)
 {
+	// cambiar sprite del tanque
+	this->tanks[tankIndex]->changeSprite();
+
+	// actualizar vida en el margen de la pantalla
+	int life = this->tanks[tankIndex]->getLifeTank();
+	std::string tankColor = this->tanks[tankIndex]->getId();
+	std::string lifeTextureFile;
+
+	switch (life) {
+	case 0:   
+		lifeTextureFile = "assets/textures/vida_0.png"; 
+		break;
+	case 25:  
+		lifeTextureFile = "assets/textures/vida_25.png"; 
+		break;
+	case 50:  
+		lifeTextureFile = "assets/textures/vida_50.png"; 
+		break;
+	case 75:  
+		lifeTextureFile = "assets/textures/vida_75.png"; 
+		break;
+	case 100: 
+		lifeTextureFile = "assets/textures/vida_100.png"; 
+		break;
+	}
+
+	// Asignar la textura según el color del tanque (para no actualizar la vida en pantalla del tanqe quivocado)
+	if (tankColor == "amarillo") {
+		this->yellowTankLifeTexture.loadFromFile(lifeTextureFile);
+		this->yellowTankLife.setTexture(this->yellowTankLifeTexture);
+	}
+	else if (tankColor == "rosado") {
+		this->pinkTankLifeTexture.loadFromFile(lifeTextureFile);
+		this->pinkTankLife.setTexture(this->pinkTankLifeTexture);
+	}
+	else if (tankColor == "rojo") {
+		this->redTankLifeTexture.loadFromFile(lifeTextureFile);
+		this->redTankLife.setTexture(this->redTankLifeTexture);
+	}
+	else {
+		this->blueTankLifeTexture.loadFromFile(lifeTextureFile);
+		this->blueTankLife.setTexture(this->blueTankLifeTexture);
+	}
 
 }
+
+// este metodo verifica si el juego termina pq un jugador se quedo sin tanques
+void Game::IsThereAWin()
+{
+	// verificar la cantidad de tanqes que tiene cada jugador
+	int tanksPlayer1 = this->players[0]->tanksAlive();
+	int tanksPlayer2 = this->players[1]->tanksAlive();
+
+	// verificar si alguno se ha quedado sin tanques
+	if (tanksPlayer1 == 0) {
+		// guardar ganador y establecer fin del juego
+		this->winner = 2;
+		this->initGameOver();
+		this->State = GameState::gameOver;
+	}
+	if (tanksPlayer2 == 0) {
+		// guardar ganador y establecer fin del juego
+		this->winner = 1;
+		this->initGameOver();
+		this->State = GameState::gameOver;
+	}
+
+}
+
+//este metodo revisa quien fue el ganador al terminarse el tiempao
+void Game::WinnerTimeUp()
+{
+	// verificar la cantidad de tanqes que tiene cada jugador
+	int tanksPlayer1 = this->players[0]->tanksAlive();
+	int tanksPlayer2 = this->players[1]->tanksAlive();
+
+	// verificar cual jugador tiene mas tanques
+	if (tanksPlayer1 > tanksPlayer2) {
+		this->winner = 1;
+		this->initGameOver();
+		this->State = GameState::gameOver;
+	}
+	else if (tanksPlayer1 < tanksPlayer2) {
+		this->winner = 2;
+		this->initGameOver();
+		this->State = GameState::gameOver;
+	}
+	else {
+		// empate
+		this->initGameOver();
+		this->State = GameState::gameOver;
+	}
+}
+
+
+
+void Game::updateClock()
+{
+	// obtener tiempo transcurrido en segundos
+	this->passedTime = this->gameClock.getElapsedTime().asSeconds();
+
+	// convertir a minutos y segundos
+	int minutes = (int)this->passedTime / 60;
+	int seconds = (int)this->passedTime % 60;
+
+	// formato MM:SS con un cero adelante si es necesario
+	std::string timeStr = std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds);
+	this->timerText.setString(timeStr);
+
+	// verificar si se acabó el tiempo (5 minutos = 300 segundos)
+	if (this->passedTime >= GAME_TIME) {
+		this->WinnerTimeUp();
+	}
+}
+
 
 // mueve aleatoriamnete el tanque dentro de un rango definido
 void Game::randomMove(int& randomRow, int& randomCol, int goalRow, int goalCol)
@@ -1019,6 +1307,7 @@ void Game::calculateNextBounce()
 	if (!this->gameMap->isPositionValid(currentRow, currentCol) || !this->gameMap->isCellFree(currentRow, currentCol)) {
 		this->activeBullet->setIsMoving(false);
 		this->activeBullet->clearPath();
+		if (this->gameMap)
 		return;
 	}
 
@@ -1114,6 +1403,9 @@ void Game::unblockOtherTanks(Tank* tankToExclude)
 
 void Game::updateGame()
 {
+	// actualizar tiempo
+	this->updateClock();
+
 	//Esto va mas arriba para que no se puedan mover tanques mientras hay bala
 	if (this->activeBullet != nullptr && this->activeBullet->getIsMoving()) {
 		this->animateBulletMove();
@@ -1124,6 +1416,9 @@ void Game::updateGame()
 		delete this->activeBullet;
 		this->activeBullet = nullptr;
 		this->switchTurn();
+
+		// verificar si el juego puede continuar
+		this->IsThereAWin();
 	}
 
 	if (this->activeTank != nullptr && this->activeTank->getIsMoving()) {
@@ -1133,7 +1428,9 @@ void Game::updateGame()
 		this->activeTank = nullptr;
 		this->switchTurn();
 
-		// nota: ya está quitas la linea switchturn por si te molesta, sigue lo de cambiar con c cualquier cosa
+		// verificar si el juego puede continuar
+		this->IsThereAWin();
+
 	}
 	
 }
@@ -1187,8 +1484,6 @@ void Game::renderGame()
 	// crear mapa
 	this->windowGame->clear();
 	this->gameMap->drawMap();
-	this->windowGame->draw(this->backButton);
-	this->windowGame->draw(this->backText);
 
 	this->tanks[0]->createTank();
 	this->tanks[1]->createTank();
@@ -1211,15 +1506,23 @@ void Game::renderGame()
 	Tank* tank1 = this->players[this->currentPlayer]->getTank(0);
 	Tank* tank2 = this->players[this->currentPlayer]->getTank(1);
 
-	//Ponemos el highlight en donde estan los tanques
-	highlight.setPosition(tank1->getCurrentCol() * this->cellWidth, tank1->getCurrentRow() * this->cellHeight);
-	this->windowGame->draw(highlight);
+	//Ponemos el highlight en donde estan los tanques si cada tanque sigue vivo
+	if (tank1->getIsAlive()) {
+		highlight.setPosition(tank1->getCurrentCol() * this->cellWidth, tank1->getCurrentRow() * this->cellHeight);
+		this->windowGame->draw(highlight);
+	}
 
-	highlight.setPosition(tank2->getCurrentCol() * this->cellWidth, tank2->getCurrentRow() * this->cellHeight);
-	this->windowGame->draw(highlight);
+	if (tank2->getIsAlive()) {
+		highlight.setPosition(tank2->getCurrentCol() * this->cellWidth, tank2->getCurrentRow() * this->cellHeight);
+		this->windowGame->draw(highlight);
+	}
 
 	// colocar menu lateral derecho
 	this->renderMargin();
+
+	// colocar boton de volver
+	this->windowGame->draw(this->backButton);
+	this->windowGame->draw(this->backText);
 
 	// mostrar los power up de cada jugador
 	this->powerUps[0]->drawPowerUp();
@@ -1242,6 +1545,10 @@ void Game::renderGame()
 	if (this->activeBullet != nullptr) {
 		this->activeBullet->createBullet();
 	}
+
+	// actualizar reloj en pantalla
+	this->windowGame->draw(this->backClock);
+	this->windowGame->draw(this->timerText);
 }
 
 void Game::renderMargin()

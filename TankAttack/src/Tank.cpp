@@ -8,12 +8,14 @@ Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, 
 	this->currentRow = row;
 	this->currentCol = col;
 
-	//Para ajustar el tamanio 
+	//Para ajustar el tamanio de los tanques
 	this->windowSize = windowSize;
 	this->window = window;
 	this->texturePath = texturePath;
 	this->cellHeight = (float)this->windowSize.y / MAP_SIZE;
 	this->cellWidth = (float)this->windowSize.x / (MAP_SIZE + MARGIN_WIDTH);
+	this->scaleX = 0;
+	this->scaleY = 0;
 
 	// posicion visual (para movimiento mientras no se ha llegado al destino para establecer la posicion logica)
 	this->visualX = this->currentCol * this->cellWidth;
@@ -31,6 +33,7 @@ Tank::Tank(int row, int col, sf::Vector2u windowSize, sf::RenderWindow* window, 
 	// variables de vida del tanque
 	this->lifePoints = 100;
 	this->isAlive = true;
+	this->contAttacks = 0;
 
 	this->initTank();
 
@@ -49,6 +52,10 @@ void Tank::initTank()
 	this->tankTexture.loadFromFile(this->texturePath);
 	this->tankSprite.setTexture(this->tankTexture);
 
+	// establecer los valores para escalar la imagen
+	this->scaleX = this->cellWidth / this->tankTexture.getSize().x;
+	this->scaleY = this->cellHeight / this->tankTexture.getSize().y;
+
 	// inicializar posiciones visuales al crear el tanque
 	this->visualX = this->currentCol * this->cellWidth;
 	this->visualY = this->currentRow * this->cellHeight;
@@ -60,7 +67,7 @@ void Tank::initTank()
 void Tank::renderTank()
 {
 	//se escala el tamano del sprite a las celdas
-	this->tankSprite.setScale(this->cellWidth / this->tankTexture.getSize().x, this->cellHeight / this->tankTexture.getSize().y);
+	this->tankSprite.setScale(this->scaleX, this->scaleY);
 	this->window->draw(this->tankSprite);
 
 	if (this->pathToGo != nullptr && this->pathSize > 0) {
@@ -122,6 +129,68 @@ void Tank::setPosition(float x, float y) {
 void Tank::createTank()
 {
 	this->renderTank();
+}
+
+// aplicar el danio que recibio un tanque
+void Tank::receiveAttack()
+{
+	if (this->isAlive) {
+		// aplicar dano
+		if (this->tankID == "amarillo" || this->tankID == "rojo") {
+			this->lifePoints -= 50;
+			this->contAttacks += 1;
+		}
+		else {
+			this->lifePoints -= 25;
+			this->contAttacks += 1;
+		}
+
+		// si ya no queda vida
+		if (this->lifePoints == 0) {
+			this->isAlive = false;
+		}
+	}
+
+}
+
+// cambiar el sprite a un tanque daniado cuando se recibe danio
+void Tank::changeSprite()
+{
+	if (this->isAlive && this->lifePoints != 100 && this->contAttacks == 1) {
+
+		std::string damagedTexturePath;
+
+		if (this->tankID == "amarillo") {
+			damagedTexturePath = "assets/textures/damagedTankYellow.png";
+		}
+		else if (this->tankID == "rojo") {
+			damagedTexturePath = "assets/textures/damagedTankRed.png";
+		}
+		else if (this->tankID == "azul") {
+			damagedTexturePath = "assets/textures/damagedTankBlue.png";
+		}
+		else {
+			damagedTexturePath = "assets/textures/damagedTankPink.png";
+		}
+
+		this->tankTexture.loadFromFile(damagedTexturePath);
+
+		// escalar la nueva textura
+		this->scaleX = (this->cellWidth / this->tankTexture.getSize().x);
+		this->scaleY = (this->cellHeight / this->tankTexture.getSize().y);
+		this->tankSprite.setTexture(this->tankTexture);
+		this->tankSprite.setScale(this->scaleX, this->scaleY);
+	}
+
+	else if (!this->isAlive) {
+		this->tankTexture.loadFromFile("assets/textures/DeadTank.png");
+
+		// escalar la nueva textura
+		this->scaleX = (this->cellWidth / this->tankTexture.getSize().x);
+		this->scaleY = (this->cellHeight / this->tankTexture.getSize().y);
+		this->tankSprite.setTexture(this->tankTexture);
+		this->tankSprite.setScale(this->scaleX, this->scaleY);
+	}
 }
 
 //Esto es para la posicion logica, la actual
@@ -199,6 +268,10 @@ void Tank::setCurrentCol(int col)
 	this->currentCol = col;
 }
 
+bool Tank::getIsAlive()
+{
+	return this->isAlive;
+}
 
 void Tank::clearPath()
 {
@@ -209,25 +282,11 @@ void Tank::clearPath()
 
 }
 
-void Tank::receiveAttack()
+int Tank::getLifeTank()
 {
-	if (this->tankID == "amarillo" || this->tankID == "rojo") {
-		this->lifePoints -= 50;
-	}
-	else {
-		this->lifePoints -= 25;
-	}
-
-	// si ya no queda vida
-	if (this->lifePoints == 0) {
-		this->isAlive = false;
-	}
+	return this->lifePoints;
 }
 
-bool Tank::getIsAlive()
-{
-	return this->isAlive;
-}
 
 //Sirve para el rango de seleccion de un tanque al hacer click
 sf::FloatRect Tank::getArea() 

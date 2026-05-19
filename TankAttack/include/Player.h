@@ -26,6 +26,7 @@ public:
 	void setTurn(bool value);
 	void selectTank(Tank* tank);
 	void deselectTank();
+	int tanksAlive();
 		
 	Tank* getTank(int index);
 	Tank* getSelectedTank();

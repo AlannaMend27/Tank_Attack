@@ -64,5 +64,4 @@ public:
 	//Para linea vista
 	void blockMapNode(int row, int col);
 	void unblockMapNode(int row, int col);
-
 };

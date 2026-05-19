@@ -55,6 +55,16 @@ Tank* Player::getTank(int index)
 	return this->tanks[index];
 }
 
+int Player::tanksAlive() {
+	int cont = 0;
+	for (int i = 0; i < 2; i++) {
+		if (this->tanks[i]->getIsAlive()) {
+			cont++;
+		}
+	}
+	return cont;
+}
+
 Tank* Player::getSelectedTank()
 {
 	return this->selectedTank;
