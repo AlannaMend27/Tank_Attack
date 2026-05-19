@@ -478,6 +478,7 @@ void Game::initGame()
 		this->powerUps[0] = new PowerUp(this->windowGame, this->windowSize, 1765, 560);
 		this->powerUps[1] = new PowerUp(this->windowGame, this->windowSize, 1765, 1070);
 		this->turnCount = 0;
+		this->extraTurns = 0;
 
 		// actualizar bandera
 		this->GameInit = true;
@@ -635,8 +636,21 @@ void Game::renderGameOver()
 
 void Game::switchTurn()
 {
+
 	//resetear el modo
 	this->tankMode = false;
+
+	// si el poder activo es doble turno, aplicarlo, lo que hace es que agregar 2 extraturns
+	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::doubleTurn) {
+		this->applyDoubleTurn();
+	}
+
+	//Si tiene turnos extra no cambiamos nada, sigue el mismo jugador
+	if (this->extraTurns > 0) {
+		this->extraTurns--;
+		return;
+	}
+
 	// desactiva el turno al jugador actual
 	this->players[this->currentPlayer]->setTurn(false);
 
@@ -883,6 +897,22 @@ void Game::animateBulletMove()
 void Game::selectPathAlgorithm(int currentIndex, int GoalIndex)
 {
 	std::string colorTank = this->activeTank->getId();
+
+	// si tiene el power up movementPrecision activo, forzamos bfs o dijkstra segun el color
+	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::movementPrecision) {
+		if (colorTank == "amarillo" || colorTank == "rojo") {
+			this->lastAlgorithm = "Dijkstra";
+			this->SetDijkstraPath(currentIndex, GoalIndex);
+		}
+		else {
+			this->SetBFSPath(currentIndex, GoalIndex);
+		}
+		this->lastAlgorithm = "BFS";
+		//aplicamos el poder y listo
+		this->applyMovePrecision();
+		return;
+	}
+
 	if (colorTank == "amarillo" || colorTank == "rojo") {
 		// Dijkstra 80% de probabilidad, Linea vista 20%
 		int randomNum = rand() % 100;
@@ -1049,7 +1079,7 @@ void Game::applyAttackPower()
 // aplica el power up de doble turno 
 void Game::applyDoubleTurn()
 {
-	// nota :aqui va la logica
+	this->extraTurns = 2;
 	this->powerUps[this->currentPlayer]->clearActivePowerUp();
 }
 
@@ -1239,7 +1269,7 @@ void Game::shootBullet(sf::Vector2f mousePos)
 		return;
 	}
 
-	//nota: aqui no bloqueamos los tanques, por que la idea es que reciban danio, la deteccion la hace isthereatank
+
 
 	//Disparo normal con linea vista
 	this->AlgLineOfSight = new LineOfSight(this->gameMap->getMapMatrix()); 
@@ -1549,6 +1579,25 @@ void Game::renderGame()
 	// actualizar reloj en pantalla
 	this->windowGame->draw(this->backClock);
 	this->windowGame->draw(this->timerText);
+
+	// debug temporal - borrar despues
+	sf::Text debugText;
+	debugText.setFont(this->font);
+	debugText.setCharacterSize(25);
+	debugText.setFillColor(sf::Color::Green);
+	debugText.setPosition(400, 10);
+
+	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::movementPrecision) {
+		debugText.setString("MOVE PRECISION ACTIVO");
+		this->windowGame->draw(debugText);
+	}
+	sf::Text algText;
+	algText.setFont(this->font);
+	algText.setCharacterSize(25);
+	algText.setFillColor(sf::Color::Yellow);
+	algText.setPosition(400, 40);
+	algText.setString("Alg: " + this->lastAlgorithm);
+	this->windowGame->draw(algText);
 }
 
 void Game::renderMargin()
@@ -1592,9 +1641,6 @@ void Game::renderMargin()
 	this->windowGame->draw(this->redTankLife);
 	this->windowGame->draw(this->blueTank);
 	this->windowGame->draw(this->blueTankLife);
-
-
-
 
 }
 

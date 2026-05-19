@@ -76,6 +76,4 @@ public:
 	int getGoalCol();
 	void setGoal(int goalRow, int goalCol);
 
-	// nota: aqui podes poner getTankHit, para saber si la bala toco un tanque, o un getArea() igual que tanque
-	// realmente esta clase es casi identica a lo del movimiento del tanque a excepcion del bounce
 };
