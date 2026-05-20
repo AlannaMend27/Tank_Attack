@@ -28,9 +28,6 @@ Game::~Game()
 	delete this->players[0];
 	delete this->players[1];
 
-	delete this->powerUps[0];
-	delete this->powerUps[1];
-
 	delete this->AlgDijkstra;
 	delete this->AlgLineOfSight;
 	delete this->AlgBFS;
@@ -97,8 +94,8 @@ void Game::PollEvents() {
 			}
 			//shift poderes
 			if (this->gameEvent.key.code == sf::Keyboard::LShift && this->State == GameState::playing) {
-				if (this->powerUps[this->currentPlayer]->hasPowerUp()) {
-					this->powerUps[this->currentPlayer]->usePowerUp();
+				if (this->players[this->currentPlayer]->hasPowerUp()) {
+					this->players[this->currentPlayer]->usePowerUp();
 					this->switchTurn();
 				}
 			}
@@ -470,13 +467,10 @@ void Game::initGame()
 		this->tanks[3] = new Tank(MAP_SIZE - 1, MAP_SIZE - 1, this->windowSize, this->windowGame, "assets/textures/tank_3.png", "rojo");
 
 		//Jugadores, el 1 empieza y tiene los tanques 0 y 1 el jugador 2, tiene los tanques 2 y 3
-		this->players[0] = new Player(1, this->tanks[0], this->tanks[1], true);
-		this->players[1] = new Player(2, this->tanks[2], this->tanks[3], false);
+		this->players[0] = new Player(1, this->tanks[0], this->tanks[1], 1765, 560, this->windowGame, this->windowSize);
+		this->players[1] = new Player(2, this->tanks[2], this->tanks[3], 1765, 1070, this->windowGame, this->windowSize);
 		this->currentPlayer = 0;
 
-		// poderes, el j1 iconos de izq a der, j2 al reves por eso el true false
-		this->powerUps[0] = new PowerUp(this->windowGame, this->windowSize, 1765, 560);
-		this->powerUps[1] = new PowerUp(this->windowGame, this->windowSize, 1765, 1070);
 		this->turnCount = 0;
 		this->extraTurns = 0;
 
@@ -641,7 +635,7 @@ void Game::switchTurn()
 	this->tankMode = false;
 
 	// si el poder activo es doble turno, aplicarlo, lo que hace es que agregar 2 extraturns
-	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::doubleTurn) {
+	if (this->players[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::doubleTurn) {
 		this->applyDoubleTurn();
 	}
 
@@ -651,9 +645,6 @@ void Game::switchTurn()
 		return;
 	}
 
-	// desactiva el turno al jugador actual
-	this->players[this->currentPlayer]->setTurn(false);
-
 	//Cambia el turno al otro jugador
 	if (this->currentPlayer == 0) {
 		this->currentPlayer = 1;
@@ -662,14 +653,12 @@ void Game::switchTurn()
 		this->currentPlayer = 0;
 	}
 
-	this->players[this->currentPlayer]->setTurn(true);
-
 	this->turnCount++;
 
 	// cada 4 turnos se genera un powerup
 	if (this->turnCount % TURNS_PER_POWERUP == 0) {
-		this->powerUps[0]->addRandom();
-		this->powerUps[1]->addRandom();
+		this->players[0]->addRandomPowerUp();
+		this->players[1]->addRandomPowerUp();
 	}
 }
 
@@ -849,7 +838,7 @@ void Game::animateBulletMove()
 
 			int tankIndex = this->tankInPos(goalRow, goalCol);
 			//verifica si el poder de full power esta activado
-			bool fullPower = this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::attackPower;
+			bool fullPower = this->players[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::attackPower;
 			// aplica el danio al tanque
 			this->tanks[tankIndex]->receiveAttack(fullPower);
 
@@ -906,7 +895,7 @@ void Game::selectPathAlgorithm(int currentIndex, int GoalIndex)
 	std::string colorTank = this->activeTank->getId();
 
 	// si tiene el power up movementPrecision activo, forzamos bfs o dijkstra segun el color
-	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::movementPrecision) {
+	if (this->players[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::movementPrecision) {
 		if (colorTank == "amarillo" || colorTank == "rojo") {
 			this->SetDijkstraPath(currentIndex, GoalIndex);
 		}
@@ -1071,27 +1060,27 @@ void Game::applyAttackPrecision(int tankRow, int tankCol, int goalRow, int goalC
 	int currentIndex = this->gameMap->toIndex(tankRow, tankCol);
 	int goalIndex = this->gameMap->toIndex(goalRow, goalCol);
 	this->SetAStarPath(currentIndex, goalIndex);
-	this->powerUps[this->currentPlayer]->clearActivePowerUp();
+	this->players[this->currentPlayer]->clearActivePowerUp();
 }
 
 // aplica el power up de poder de ataque
 void Game::applyAttackPower()
 {
 	
-	this->powerUps[this->currentPlayer]->clearActivePowerUp();
+	this->players[this->currentPlayer]->clearActivePowerUp();
 }
 
 // aplica el power up de doble turno 
 void Game::applyDoubleTurn()
 {
 	this->extraTurns = 2;
-	this->powerUps[this->currentPlayer]->clearActivePowerUp();
+	this->players[this->currentPlayer]->clearActivePowerUp();
 }
 
 //nota el attack power y moveprecision hacen lo mismo, no se si dejarlos por mejor lectura de codigo o borramos uno
 void Game::applyMovePrecision()
 {
-	this->powerUps[this->currentPlayer]->clearActivePowerUp();
+	this->players[this->currentPlayer]->clearActivePowerUp();
 }
 
 void Game::applyAttackToTank(int tankIndex)
@@ -1262,7 +1251,7 @@ void Game::shootBullet(sf::Vector2f mousePos)
 	int tankCol = shootingTank->getCurrentCol();
 
 	// si el jugador tiene precision de ataque activa, y la celda no es un muro usar A* en vez de linea vista
-	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::attackPrecision && this->gameMap->isCellFree(goalRow, goalCol)) {
+	if (this->players[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::attackPrecision && this->gameMap->isCellFree(goalRow, goalCol)) {
 
 		//crea bala y objetivo
 		this->activeBullet = new Bullet(tankRow, tankCol, this->windowSize, this->windowGame);
@@ -1559,8 +1548,8 @@ void Game::renderGame()
 	this->windowGame->draw(this->backText);
 
 	// mostrar los power up de cada jugador
-	this->powerUps[0]->drawPowerUp();
-	this->powerUps[1]->drawPowerUp();
+	this->players[0]->drawPowerUp();
+	this->players[1]->drawPowerUp();
 
 	if (this->tankMode && this->players[this->currentPlayer]->getSelectedTank() != nullptr) {
 

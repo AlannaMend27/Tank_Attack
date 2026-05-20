@@ -9,7 +9,6 @@
 #include "BFS.h"
 #include "Bullet.h"
 #include "AStar.h"
-#include "PowerUp.h"
 
 enum class GameState {
 	menu,
@@ -121,9 +120,6 @@ private:
 
 	// numero del jugador ganador(0 -ninguno, 1 - jugador uno, 2 - jugador dos)
 	int winner;
-
-	// poderes
-	PowerUp* powerUps[2];
 
 	int extraTurns;
 
