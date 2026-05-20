@@ -156,8 +156,8 @@ private:
 	sf::Text timerText;
 	sf::RectangleShape backClock;
 
-
-	std::string lastAlgorithm;
+	
+	std::string u; //x
 
 public:
 	// constructor y destructor

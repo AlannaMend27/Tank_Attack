@@ -5,7 +5,7 @@
 const int MAP_SIZE = 15;
 
 // tiempo del juego
-const float GAME_TIME = 60.f;
+const float GAME_TIME = 300.f;
 
 // Tamanio del margen de informacion del juego (tamanio de 2 celdas)
 const int MARGIN_WIDTH = 2;
@@ -33,6 +33,3 @@ const int MAX_BULLET_BOUNCES = 3;
 
 //Cantidad de turnos para un power up
 const int TURNS_PER_POWERUP = 4;
-
-// Tiempo del juego
-// const int GAME_TIME = 300;

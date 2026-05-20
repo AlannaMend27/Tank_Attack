@@ -847,9 +847,16 @@ void Game::animateBulletMove()
 			this->activeBullet->setIsMoving(false);
 			this->activeBullet->clearPath();
 
-			// aplica el danio al tanque
 			int tankIndex = this->tankInPos(goalRow, goalCol);
-			this->tanks[tankIndex]->receiveAttack();
+			//verifica si el poder de full power esta activado
+			bool fullPower = this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::attackPower;
+			// aplica el danio al tanque
+			this->tanks[tankIndex]->receiveAttack(fullPower);
+
+			//aplicamos el poder (quita el poder de la cola
+			if (fullPower == true) {
+				this->applyAttackPower();
+			}
 
 			//cambiar estado del tanque en interfaz
 			this->applyAttackToTank(tankIndex);
@@ -901,13 +908,11 @@ void Game::selectPathAlgorithm(int currentIndex, int GoalIndex)
 	// si tiene el power up movementPrecision activo, forzamos bfs o dijkstra segun el color
 	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::movementPrecision) {
 		if (colorTank == "amarillo" || colorTank == "rojo") {
-			this->lastAlgorithm = "Dijkstra";
 			this->SetDijkstraPath(currentIndex, GoalIndex);
 		}
 		else {
 			this->SetBFSPath(currentIndex, GoalIndex);
 		}
-		this->lastAlgorithm = "BFS";
 		//aplicamos el poder y listo
 		this->applyMovePrecision();
 		return;
@@ -1072,7 +1077,7 @@ void Game::applyAttackPrecision(int tankRow, int tankCol, int goalRow, int goalC
 // aplica el power up de poder de ataque
 void Game::applyAttackPower()
 {
-	// nota: aqui aplicar el 100% danio
+	
 	this->powerUps[this->currentPlayer]->clearActivePowerUp();
 }
 
@@ -1083,9 +1088,9 @@ void Game::applyDoubleTurn()
 	this->powerUps[this->currentPlayer]->clearActivePowerUp();
 }
 
+//nota el attack power y moveprecision hacen lo mismo, no se si dejarlos por mejor lectura de codigo o borramos uno
 void Game::applyMovePrecision()
 {
-	// nota: aqui va la logica
 	this->powerUps[this->currentPlayer]->clearActivePowerUp();
 }
 
@@ -1337,7 +1342,6 @@ void Game::calculateNextBounce()
 	if (!this->gameMap->isPositionValid(currentRow, currentCol) || !this->gameMap->isCellFree(currentRow, currentCol)) {
 		this->activeBullet->setIsMoving(false);
 		this->activeBullet->clearPath();
-		if (this->gameMap)
 		return;
 	}
 
@@ -1579,25 +1583,6 @@ void Game::renderGame()
 	// actualizar reloj en pantalla
 	this->windowGame->draw(this->backClock);
 	this->windowGame->draw(this->timerText);
-
-	// debug temporal - borrar despues
-	sf::Text debugText;
-	debugText.setFont(this->font);
-	debugText.setCharacterSize(25);
-	debugText.setFillColor(sf::Color::Green);
-	debugText.setPosition(400, 10);
-
-	if (this->powerUps[this->currentPlayer]->getActivePowerUp() == (int)PowerUpType::movementPrecision) {
-		debugText.setString("MOVE PRECISION ACTIVO");
-		this->windowGame->draw(debugText);
-	}
-	sf::Text algText;
-	algText.setFont(this->font);
-	algText.setCharacterSize(25);
-	algText.setFillColor(sf::Color::Yellow);
-	algText.setPosition(400, 40);
-	algText.setString("Alg: " + this->lastAlgorithm);
-	this->windowGame->draw(algText);
 }
 
 void Game::renderMargin()

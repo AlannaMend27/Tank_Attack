@@ -66,7 +66,7 @@ public:
 	void clearPath();
 
 	// metodos de que controlan la vida del tanque, logica y visual
-	void receiveAttack();
+	void receiveAttack(bool fullPower);
 	bool getIsAlive();
 	void changeSprite();
 	int getLifeTank();
