@@ -132,9 +132,16 @@ void Tank::createTank()
 }
 
 // aplicar el danio que recibio un tanque
-void Tank::receiveAttack()
+void Tank::receiveAttack(bool fullPower)
 {
 	if (this->isAlive) {
+		//si se recibe danio con full power lo mata de una
+		if (fullPower) {
+			this->lifePoints = 0;
+			this->isAlive = false;
+			this->contAttacks += 1;
+			return;
+		}
 		// aplicar dano
 		if (this->tankID == "amarillo" || this->tankID == "rojo") {
 			this->lifePoints -= 50;

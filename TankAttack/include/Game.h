@@ -125,6 +125,8 @@ private:
 	// poderes
 	PowerUp* powerUps[2];
 
+	int extraTurns;
+
 	//0 j1,1 j2
 	int currentPlayer = 0;
 
@@ -153,6 +155,9 @@ private:
 	float passedTime;         
 	sf::Text timerText;
 	sf::RectangleShape backClock;
+
+	
+	std::string u; //x
 
 public:
 	// constructor y destructor
