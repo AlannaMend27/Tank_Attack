@@ -60,6 +60,12 @@ int AStar::minorElement()
 //igual que shortestpath de dijktra, reconstruye el camino desde el obj hasta el inicio
 int* AStar::reconstructPath()
 {
+	// si el destino no fue alcanzado, retornar nullptr
+	if (this->previous[this->goalIndex] == -1 && this->goalIndex != this->startIndex) {
+		this->pathSize = 0;
+		return nullptr;
+	}
+
 	int father = this->goalIndex;
 	while (father != -1) {
 		this->pathSize++;
@@ -114,7 +120,7 @@ int* AStar::AStarAlgorithm(int startIndex, int goalIndex)
 		//revisar los vecinos del nodo actual
 		for (int i = 0; i < GRAPH_SIZE; i++) {
 			if (this->graphMatrix[current][i] != 0 && !this->visited[i]) {
-				int newGCcost = this->gCost[current] + 1;
+				int newGCcost = this->gCost[current] + graphMatrix[current][i];
 
 				if (this->gCost[current] != INT_MAX && newGCcost < this->gCost[i]) {
 					this->previous[i] = current;

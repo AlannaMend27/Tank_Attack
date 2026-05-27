@@ -29,6 +29,7 @@ private:
 	// metodos privados
 
 	void generateObstacles();
+	int getZoneWeights(int row, int col);
 	void generateGraph();
 
 	bool isCorner(int row, int col);

@@ -90,6 +90,42 @@ void Map::generateObstacles()
 
 }
 
+int Map::getZoneWeights(int row, int col)
+{
+	// este metodo obtiene el peso de la conexion de los nodos en base a la distancia que hay hacia el centro
+	// entre mas cerca se este del centro mayor sera el peso (ya que normalmente a donde los jugadores quieren ir es al centro)
+
+	// obtiene la celda que esta en el centro del mapa para tomarla como referencia
+	const int centerCell = MAP_SIZE / 2;
+
+	// distancia aprox de la zonas
+	const int innerZone = 3;
+	const int midZone = 7;
+	const int outerZone = 10;
+
+	// peso de acuerdo a la zona
+	const int innerWeight = 10;
+	const int midWeight = 6;
+	const int outerWeight = 3;
+	const int defaultWeight = 1;
+
+	// distancia manhattan desde la celda actual hasta el centro
+	int distance = abs(row - centerCell) + abs(col - centerCell);
+
+	// establecer un peso en base al resultado de la distancia (la cual tiene rangos de 0 a 14, siendo 14 el valor mas cercano a la esquina)
+	if (distance < innerZone) {
+		return innerWeight;
+	}
+	if (distance < midZone) {
+		return midWeight;
+	}
+	if (distance < outerZone) {
+		return outerWeight;
+	}
+	return defaultWeight;
+	
+}
+
 void Map::generateGraph()
 {
 	// este metodo recorre las celdas de la matriz y crea cada nodo y sus conexiones 
@@ -101,18 +137,19 @@ void Map::generateGraph()
 				int rows[4] = { -1,1,0,0};
 				int columns[4] = { 0,0,-1,1};
 
-				// crear nodo en hash map que almacena todos los nodos del grafo
-				this->graphMap->createNode(1, toIndex(i, j));
-
 				// calcular donde estarian los vecinos
 				for (int k = 0; k < 4; k++) {
 					int newRow = rows[k] + i;
 					int newCol = columns[k] + j;
-
+					
 					// calcular si las posiciones son validas y si la celda a visitar no tiene obstaculo
 					if (this->isPositionValid(newRow, newCol) && this->mapMatrix[newRow][newCol] == 0) {
+
+						// obtener peso de la arista (dependiendoq ue tan cerca esta del centro)
+						int weightEdge = this->getZoneWeights(newRow, newCol);
+
 						// agregar arista
-						this->graphMap->createEdge(toIndex(i,j) , toIndex(newRow, newCol), 1);
+						this->graphMap->createEdge(toIndex(i,j) , toIndex(newRow, newCol), weightEdge);
 					}
 				}
 			}

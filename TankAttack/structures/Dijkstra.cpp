@@ -1,6 +1,5 @@
 #include "dijkstra.h"
 
-
 // constructor y destructor
 Dijkstra::Dijkstra(const int* const* matrix) {
 	this->graphMatrix = matrix;
@@ -45,6 +44,12 @@ int Dijkstra::MinorElement()
 // este metodo recorre el camino para llegar del nodo destino al nodo inicial, es la parte final del algoritmo
 int* Dijkstra::shortestPath()
 {
+	// si el destino no fue alcanzado, retornar nullptr
+	if (this->previous[this->goalIndex] == -1 && this->goalIndex != this->startIndex) {
+		this->pathSize = 0;
+		return nullptr;
+	}
+
 	// calcular cuentos nodos hay que recorrer antes de llegar al destino
 	int father = this->goalIndex;
 	// hasta que lleguemos al inicio que seria un nodo que no tenga padre asignado
@@ -65,7 +70,7 @@ int* Dijkstra::shortestPath()
 
 	}
 	// retorna el camino desde el nodo inicial para llegar al destino
-	return path;
+	return this->path;
 
 }
 
@@ -99,10 +104,9 @@ int* Dijkstra::DijkstraAlgorithm(int startIndex, int goalIndex)
 			// y que el nodo vecino no haya sido visitado
 			if (this->graphMatrix[min][i] != 0 && !this->visited[i]) {
 				// verificar si el nodo actual es alcanzable y si hay un camino mas corto al actual para ese nodo (inician en infinito)
-				// notita: ese 1 hay que cambiarlo, solo es ese pq ahorita todos los nodos tienen un pesito de 1. okokok
-				if (this->distance[min] != INT_MAX && this->distance[min] + 1 < this->distance[i]) {
+				if (this->distance[min] != INT_MAX && this->distance[min] + this->graphMatrix[min][i] < this->distance[i]) {
 					// asignar el peso que tiene llegar a ese vecino
-					this->distance[i] = this->distance[min] + 1;
+					this->distance[i] = this->distance[min] + this->graphMatrix[min][i];
 					// guardar el camino de donde venimos
 					this->previous[i] = min;
 					// agregarlo a la cola para procesarlo despues
