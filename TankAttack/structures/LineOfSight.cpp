@@ -92,6 +92,11 @@ bool LineOfSight::LineOfSightAlgorithm(int rowStart, int colStart, int rowGoal, 
 			if (this->error >= 0) {
 				this->col += this->incrementX;
 				this->error += increment1;
+
+				// verifica movimiento diagonal entre dos paredes (para no realizarlo)
+				if (this->mapMatrix[this->row][this->col] != 0) {
+					return false;
+				}
 			}
 			else {
 				// el error es bajo, no nos movemos en eje x
