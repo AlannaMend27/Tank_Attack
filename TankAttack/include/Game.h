@@ -9,6 +9,7 @@
 #include "BFS.h"
 #include "AStar.h"
 #include "bulletController.h"
+#include "TankManager.h"
 
 enum class GameState {
 	menu,
@@ -110,7 +111,7 @@ private:
 
 	// tanques
 	Tank* tanks[4] = { nullptr, nullptr, nullptr, nullptr };
-	Tank* activeTank = nullptr;
+
 	
 
 	// jugadores 
@@ -118,6 +119,7 @@ private:
 
 	// controladores del juego
 	BulletController* bulletController = nullptr;
+	TankManager* tankManager = nullptr;
 
 	// numero del jugador ganador(0 -ninguno, 1 - jugador uno, 2 - jugador dos)
 	int winner;
@@ -134,14 +136,11 @@ private:
 	float cellWidth;
 	float cellHeight;
 
+
+	
+
 	//Modo disparo/moverse 0 es moverse 1 disparo
 	bool tankMode;
-
-	// algoritmos de busqueda de camino mas corto
-	Dijkstra* AlgDijkstra;
-	LineOfSight* AlgLineOfSight;
-	BFS* AlgBFS;
-	AStar* AlgAStar;
 
 	// reloj de la partida
 	sf::Clock gameClock;        
@@ -175,20 +174,10 @@ public:
 	void renderMargin();
 	void renderAvailableMove();
 	void switchTurn();
-	void TankSelection(sf::Vector2f mousePos);
 	void mouseClickToCoords(sf::Vector2f mousePos, int& row, int& col);
-	void blockOtherTanks(Tank* tankToExclude);
-	void unblockOtherTanks(Tank* tankToExclude);
 
 	// metodos relacionados al movimiento de los tanques
-	void moveTank(sf::Vector2f mousePos);
-	void AnimateTankMove();
-	void selectPathAlgorithm(int currentIndex, int GoalIndex);
-	void SetDijkstraPath(int currentIndex, int GoalIndex);
-	void SetLineOfSightPath(int currentIndex, int GoalIndex);
-	void SetBFSPath(int currentIndex, int GoalIndex);
-	void randomMove(int& randomRow, int& randomCol,int goalRow, int goalCol);
-	bool isThereATank(int row, int col);
+	// bool isThereATank(int row, int col);
 	
 	//Metodos relacionados a los power uops
 	void applyDoubleTurn();
