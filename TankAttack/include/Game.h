@@ -7,8 +7,8 @@
 #include "dijkstra.h"
 #include "lineOfSight.h"
 #include "BFS.h"
-#include "Bullet.h"
 #include "AStar.h"
+#include "bulletController.h"
 
 enum class GameState {
 	menu,
@@ -112,11 +112,12 @@ private:
 	Tank* tanks[4] = { nullptr, nullptr, nullptr, nullptr };
 	Tank* activeTank = nullptr;
 	
-	// bala
-	Bullet* activeBullet = nullptr;
 
 	// jugadores 
 	Player* players[2] = {nullptr, nullptr};
+
+	// controladores del juego
+	BulletController* bulletController = nullptr;
 
 	// numero del jugador ganador(0 -ninguno, 1 - jugador uno, 2 - jugador dos)
 	int winner;
@@ -128,10 +129,6 @@ private:
 
 	// cantidad de turnos que llevan
 	int turnCount;
-
-	// posicion de los clicks en la matriz
-	int mouseRow;
-	int mouseCol;
 
 	// alto y ancho de una celda
 	float cellWidth;
@@ -151,9 +148,6 @@ private:
 	float passedTime;         
 	sf::Text timerText;
 	sf::RectangleShape backClock;
-
-	
-	std::string u; //x
 
 public:
 	// constructor y destructor
@@ -183,7 +177,6 @@ public:
 	void switchTurn();
 	void TankSelection(sf::Vector2f mousePos);
 	void mouseClickToCoords(sf::Vector2f mousePos, int& row, int& col);
-	void shootBullet(sf::Vector2f mousePos);
 	void blockOtherTanks(Tank* tankToExclude);
 	void unblockOtherTanks(Tank* tankToExclude);
 
@@ -196,21 +189,12 @@ public:
 	void SetBFSPath(int currentIndex, int GoalIndex);
 	void randomMove(int& randomRow, int& randomCol,int goalRow, int goalCol);
 	bool isThereATank(int row, int col);
-	int tankInPos(int row, int col);
-
-	//Metodos relacionados al movimiento de las balas
-	void animateBulletMove();
-	void calculateNextBounce();
-	void SetAStarPath(int currentIndex, int goalIndex);
 	
 	//Metodos relacionados a los power uops
-	void applyAttackPrecision(int tankRow, int tankCol, int goalRow, int goalCol);
-	void applyAttackPower();
 	void applyDoubleTurn();
-	void applyMovePrecision();
 
 	// Metodos relacionados con la vida de los tanques y la condicion de gane
-	void applyAttackToTank(int tankIndex);
+	void applyVisualAttackToTank(int tankIndex);
 	void IsThereAWin();
 	void WinnerTimeUp();
 	void updateClock();

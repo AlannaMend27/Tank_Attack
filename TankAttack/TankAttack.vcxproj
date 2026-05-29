@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Bullet.cpp" />
+    <ClCompile Include="src\BulletControler.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\map.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="include\AStar.h" />
     <ClInclude Include="include\BFS.h" />
     <ClInclude Include="include\Bullet.h" />
+    <ClInclude Include="include\bulletController.h" />
     <ClInclude Include="include\dijkstra.h" />
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GameConfig.h" />
