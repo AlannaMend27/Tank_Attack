@@ -297,7 +297,7 @@ void Game::initGame()
 		//Jugadores, el 1 empieza y tiene los tanques 0 y 1 el jugador 2, tiene los tanques 2 y 3
 		this->players[0] = new Player(1, this->tanks[0], this->tanks[1], 1765, 560, this->windowGame, this->windowSize);
 		this->players[1] = new Player(2, this->tanks[2], this->tanks[3], 1765, 1070, this->windowGame, this->windowSize);
-		this->currentPlayer = 0;
+		this->currentPlayer = false;
 
 		// inicializar controladores del juego
 		this->bulletController = new BulletController(this->gameMap, this->tanks, this->players, this->windowGame, this->windowSize, this->cellWidth, this->cellHeight);
@@ -348,12 +348,7 @@ void Game::switchTurn()
 	}
 
 	//Cambia el turno al otro jugador
-	if (this->currentPlayer == 0) {
-		this->currentPlayer = 1;
-	}
-	else {
-		this->currentPlayer = 0;
-	}
+	this->currentPlayer = !this->currentPlayer;
 
 	this->turnCount++;
 

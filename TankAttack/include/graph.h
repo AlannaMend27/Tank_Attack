@@ -1,15 +1,6 @@
 #pragma once
 #include<unordered_map>
 
-class Node {
-public:
-	int weight;
-
-	// constructor
-	Node();
-	Node(int weightNode);
-};
-
 class graph {
 private:
 	// ATRIBUTOS

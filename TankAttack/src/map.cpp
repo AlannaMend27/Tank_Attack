@@ -1,7 +1,7 @@
 #include "map.h"
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "grafo.h"
+#include "graph.h"
 
 // constructor y destructor
 Map::Map(int n, sf::RenderWindow* windowGame, sf::Vector2u sizeWindow) {

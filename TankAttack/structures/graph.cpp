@@ -1,4 +1,4 @@
-#include "grafo.h"
+#include "graph.h"
 #include "GameConfig.h"
 
 // destructor y constructor clase grafo

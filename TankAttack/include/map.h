@@ -1,5 +1,5 @@
 #pragma once
-#include "grafo.h"
+#include "graph.h"
 #include "queue.h"	
 #include "GameConfig.h"
 #include <SFML/Graphics.hpp>

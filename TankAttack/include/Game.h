@@ -60,7 +60,7 @@ private:
 	int extraTurns;
 
 	//0 j1,1 j2
-	int currentPlayer = 0;
+	bool currentPlayer = false;
 
 	// cantidad de turnos que llevan
 	int turnCount;

@@ -313,7 +313,7 @@ void UIManager::renderGame(int currentPlayer, bool tankMode, float passedTime)
     highlight.setOutlineThickness(-3.f);
 
     //Si el jugador actual es el 0 se resalta rojo, si no amarillo
-    if (currentPlayer == 0) {
+    if (currentPlayer == false) {
         highlight.setOutlineColor(sf::Color::Yellow);
     }
     else {
