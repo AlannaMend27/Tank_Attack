@@ -73,111 +73,33 @@ void Game::PollEvents() {
 	*/
 
 	while (this->windowGame->pollEvent(gameEvent)) {
+		
 		switch (this->gameEvent.type) {
 		case sf::Event::Closed:
+
 			this->windowGame->close();
 			break;
+
 		case sf::Event::KeyPressed:
-			if (this->gameEvent.key.code == sf::Keyboard::Escape) {
-				this->windowGame->close();
-			}
-			//Mientras para probar el cambio de turno con c
-			if (this->gameEvent.key.code == sf::Keyboard::C && this->State == GameState::playing) {
-				this->switchTurn();
-			}
-			//Cambio de modo moverse/disparo con v
-			if (this->gameEvent.key.code == sf::Keyboard::V && this->State == GameState::playing) {
-				if (this->players[this->currentPlayer]->getSelectedTank() != nullptr) {
-					//Cambia el modo
-					this->tankMode = !this->tankMode;
-				}
-			}
-			//shift poderes
-			if (this->gameEvent.key.code == sf::Keyboard::LShift && this->State == GameState::playing) {
-				if (this->players[this->currentPlayer]->hasPowerUp()) {
-					this->players[this->currentPlayer]->usePowerUp();
-					this->switchTurn();
-				}
-			}
+
+			// verificar cual fue la tecla presionada y realizar lo inficado
+			this->handleKeyPressed();
 			break;
 
 		case sf::Event::MouseButtonPressed:
+
+			// obetner la posicion del mouse en la ventana de juego
+			sf::Vector2f mousePos(gameEvent.mouseButton.x, gameEvent.mouseButton.y);
+
+			// click izquierdo
 			if (gameEvent.type == sf::Event::MouseButtonPressed && gameEvent.mouseButton.button == sf::Mouse::Left) {
-				// obtener la posicion
-				sf::Vector2f mousePos(gameEvent.mouseButton.x, gameEvent.mouseButton.y);
 
-				// ver si la posicion esta cerca de alguno de los dos botones
-				if (this->State == GameState::menu) {
-					if (this->uiManager->getPlayButtonBounds().contains(mousePos)) {
-						this->State = GameState::playing;
-						this->GameInit = false;
-					}
-					if (this->uiManager->getCloseButtonBounds().contains(mousePos)) {
-						this->windowGame->close();
-						break;
-					}
-				}
-				
-				if (this->State == GameState::playing) {
-					// ver si esta cerca del boton volver
-					if (this->uiManager->getBackButtonBounds().contains(mousePos)) {
-						this->State = GameState::menu;
-					}
-
-					// si hay una bala no deja hacer nada
-					if (this->bulletController->getActiveBullet() != nullptr) {
-						break;
-					}
-
-					//Si hay un tanque moviendose no deja hacer nada
-					if (this->tankManager->isAnimating()) {
-						break;
-					}
-
-					// si no hay tanque seleccionado aun, intentar seleccionar, en modo disparo el click izq no hace nada
-					if (!this->tankMode){ 
-						if (this->players[this->currentPlayer]->getSelectedTank() == nullptr) {
-							this->tankManager->TankSelection(mousePos, this->currentPlayer);
-						}
-						else {
-							// ya hay tanque seleccionado, este click es el destino
-							this->tankManager->moveTank(mousePos, this->currentPlayer);
-							this->tankMode = false;
-						}
-					
-					}
-				}
-				if (this->State == GameState::gameOver) {
-					// verificar los botones en la pantalla de game over
-					if (this->uiManager->getPlayAgainButtonBounds().contains(mousePos)) {
-						// reiniciar el juego
-						this->GameInit = false;
-						this->State = GameState::playing;
-						this->initGame();
-						this->gameClock.restart();
-					}
-					if (this->uiManager->getBackMenuButtonBounds().contains(mousePos)) {
-						// volver al menu
-						this->GameInit = false;
-						this->State = GameState::menu;
-					}
-				}
+				this->handleLeftClick(mousePos);
 			}
-			//click derecho disparo
+			//click derecho 
 			if (gameEvent.mouseButton.button == sf::Mouse::Right) {
-				sf::Vector2f mousePos(gameEvent.mouseButton.x, gameEvent.mouseButton.y);
 
-				//Verifica si no hay balas, si esta en modo disparo y si el tanque esta seleccionado
-				if (this->State == GameState::playing && this->bulletController->getActiveBullet() == nullptr && this->tankMode
-					&& this->players[this->currentPlayer]->getSelectedTank() != nullptr) {
-
-						// disparar
-						this->bulletController->shootBullet(mousePos, this->currentPlayer);
-
-						// deseleccionar el tanque
-						this->tankMode = false;                          
-						this->players[this->currentPlayer]->deselectTank();
-				}
+				this->handleRightClick(mousePos);
 			}
 
 
@@ -185,6 +107,128 @@ void Game::PollEvents() {
 	}
 
 }
+
+// maneja la tecla presionada por el usuario durante el juego
+void Game::handleKeyPressed()
+{
+	// si la tecla es escape se sale del juego
+	if (this->gameEvent.key.code == sf::Keyboard::Escape) {
+		this->windowGame->close();
+	}
+	
+	// si la tecla es c se cambia de turno
+	if (this->gameEvent.key.code == sf::Keyboard::C && this->State == GameState::playing) {
+		this->switchTurn();
+	}
+
+	//Cambio de modo moverse/disparo con v
+	if (this->gameEvent.key.code == sf::Keyboard::V && this->State == GameState::playing) {
+		if (this->players[this->currentPlayer]->getSelectedTank() != nullptr) {
+			//Cambia el modo
+			this->tankMode = !this->tankMode;
+		}
+	}
+	//si la tecla es shift se consume un power up
+	if (this->gameEvent.key.code == sf::Keyboard::LShift && this->State == GameState::playing) {
+		if (this->players[this->currentPlayer]->hasPowerUp()) {
+			this->players[this->currentPlayer]->usePowerUp();
+			this->switchTurn();
+		}
+	}
+}
+
+// maneja el click izquierdo de acuerdo al estado del juego (menu, playing o game over)
+void Game::handleLeftClick(sf::Vector2f mousePos)
+{
+	if (this->State == GameState::menu) {
+		this->handleMenuClick(mousePos);
+	}
+	else if (this->State == GameState::playing) {
+		this->handlePlayingClick(mousePos);
+	}
+	else if (this->State == GameState::gameOver) {
+		this->handleGameOverClick(mousePos);
+	}
+}
+
+// maneja el click derecho, utilizado para disparar si un tanque esta seleccionado
+void Game::handleRightClick(sf::Vector2f mousePos)
+{
+	// verifica que se encuente en modo juega
+	if (this->State != GameState::playing) {
+		return;
+	}
+
+	// verifica que no haya balas en ese momento
+	if (this->bulletController->getActiveBullet() != nullptr) {
+		return;
+	}
+
+	// verifica que se encuentre en modo disparo (false esta en modo movimiento, true modo disparo) y que el jugador tiene seleccionado un tanque
+	if (!this->tankMode || this->players[this->currentPlayer]->getSelectedTank() == nullptr) {
+		return;
+	}
+
+	// disparar
+	this->bulletController->shootBullet(mousePos, this->currentPlayer);
+
+	// deseleccionar el tanque
+	this->tankMode = false;
+	this->players[this->currentPlayer]->deselectTank();
+}
+
+// verifica si hay clicks en los botones del menu
+void Game::handleMenuClick(sf::Vector2f mousePos)
+{
+	if (this->uiManager->getPlayButtonBounds().contains(mousePos)) {
+		this->State = GameState::playing;
+		this->GameInit = false;
+	}
+	if (this->uiManager->getCloseButtonBounds().contains(mousePos))
+		this->windowGame->close();
+}
+
+// verifica su hay clicks durante el desarollo del juego 
+void Game::handlePlayingClick(sf::Vector2f mousePos)
+{
+	// si se presiona el boton de volver
+	if (this->uiManager->getBackButtonBounds().contains(mousePos)) {
+		this->State = GameState::menu;
+		return;
+	}
+
+	// si se esta animando una bala o si hay un tanque moviendose, no permitir leer el click
+	if (this->bulletController->getActiveBullet() != nullptr) return;
+	if (this->tankManager->isAnimating()) return;
+
+	// seleccionar o mover el tanque 
+	if (!this->tankMode) {
+		if (this->players[this->currentPlayer]->getSelectedTank() == nullptr)
+			this->tankManager->TankSelection(mousePos, this->currentPlayer);
+		else {
+			this->tankManager->moveTank(mousePos, this->currentPlayer);
+			this->tankMode = false;
+		}
+	}
+}
+
+// verifica si hay clicks cuando se muestra la ventana de game over
+void Game::handleGameOverClick(sf::Vector2f mousePos)
+{
+	// click sobre del boton de jugar de nuevo
+	if (this->uiManager->getPlayAgainButtonBounds().contains(mousePos)) {
+		this->GameInit = false;
+		this->State = GameState::playing;
+		this->initGame();
+		this->gameClock.restart();
+	}
+	// click sobre el boton para devolverse a menu
+	if (this->uiManager->getBackMenuButtonBounds().contains(mousePos)) {
+		this->GameInit = false;
+		this->State = GameState::menu;
+	}
+}
+
 
 // update y dender del juego general
 
@@ -196,9 +240,7 @@ void Game::update()
 	// decidir donde ir de acuerdo a evento detectado
 	switch (this->State) {
 	case GameState::menu:
-		if (!GameInit) {
-			this->initGame();
-		}
+		this->initGame();
 		this->uiManager->updateMenu();
 		break;
 
@@ -236,6 +278,7 @@ void Game::render() {
 }
 
 // metodos de la ventana del juego principal
+
 void Game::initGame()
 {
 	//Este if es para separar lo que siempre es fijo y lo que no, mapa siempre cambia, los botones y donde salen los tanques no

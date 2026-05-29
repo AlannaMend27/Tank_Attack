@@ -83,9 +83,21 @@ public:
 
 	// metodos del sistema en general
 	void run();
-	void PollEvents();
 	void update();
 	void render();
+
+	// manejo de eventos del juego
+	void PollEvents();
+
+	// manejo de tecla o click hecho por el usuario
+	void handleKeyPressed();
+	void handleLeftClick(sf::Vector2f mousePos);
+	void handleRightClick(sf::Vector2f mousePos);
+
+	// manejo de eventos del juego
+	void handleMenuClick(sf::Vector2f mousePos);
+	void handlePlayingClick(sf::Vector2f mousePos);
+	void handleGameOverClick(sf::Vector2f mousePos);
 
 	// metodos del juego
 	void initGame();
