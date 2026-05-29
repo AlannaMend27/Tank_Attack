@@ -14,7 +14,6 @@ Map::Map(int n, sf::RenderWindow* windowGame, sf::Vector2u sizeWindow) {
 	this->size = n;
 	this->window = windowGame;
 	this->windowSize = sizeWindow;
-	initMap();
 	createMap();
 }
 
@@ -30,19 +29,6 @@ Map::~Map() {
 
 // metodos publicos
 
-void Map::initMap()
-{
-	// muros
-	this->wall.loadFromFile("assets/textures/wall.png");
-	this->wallMap.setTexture(this->wall);
-
-	// mapa
-	this->background.loadFromFile("assets/textures/mapBackground.png");
-	this->backgroundMap.setTexture(this->background);
-
-
-}
-
 void Map::createMap()
 {
 	this->graphMap = new graph(MAP_SIZE * MAP_SIZE);
@@ -54,7 +40,6 @@ void Map::createMap()
 	}
 
 	this->generateGraph();
-	this->renderMap();
 }
 
 // metodos privados
@@ -269,39 +254,6 @@ bool Map::isEveryNodeAccessible()
 	return true;
 }
 
-void Map::renderMap()
-{
-	// obtener tamano de celdas y escalar muros a este tamano
-	float cellWidth = (float)this->windowSize.x / (MAP_SIZE + MARGIN_WIDTH);
-	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
-
-	// calcular el ancho del mapa tomando en cuenta el margen lateral
-	float mapWidthPixels = this->windowSize.x - (MARGIN_WIDTH * cellWidth);
-
-	// dibujar mapa de fondo
-	this->backgroundMap.setScale(
-		mapWidthPixels / this->background.getSize().x,
-		(float)this->windowSize.y/ this->background.getSize().y
-	);
-	this->window->draw(this->backgroundMap);
-
-	this->wallMap.setScale(cellWidth / this->wall.getSize().x, cellHeight / this->wall.getSize().y);
-
-	for (int i = 0; i < MAP_SIZE; i++) {
-		for (int j = 0; j < MAP_SIZE; j++) {
-			if (this->mapMatrix[i][j] == 1) {
-				this->wallMap.setPosition(
-					j * cellWidth,
-					i * cellHeight
-				);
-				this->window->draw(this->wallMap);
-			}
-
-		}
-	}
-
-}
-
 //Este metodo sirve para render game, si la celda es libre, se puede mover/disparar con el tanque ahi
 bool Map::isCellFree(int row, int col)
 {
@@ -365,8 +317,3 @@ void Map::unblockMapNode(int row, int col)
 	this->mapMatrix[row][col] = 0;
 }
 
-//Publico para que pueda ser llamado
-void Map::drawMap()
-{
-	this->renderMap();
-}

@@ -143,6 +143,7 @@
     <ClCompile Include="src\PowerUp.cpp" />
     <ClCompile Include="src\Tank.cpp" />
     <ClCompile Include="src\TankManager.cpp" />
+    <ClCompile Include="src\UIManager.cpp" />
     <ClCompile Include="structures\AStar.cpp" />
     <ClCompile Include="structures\BFS.cpp" />
     <ClCompile Include="structures\Dijkstra.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="include\queue.h" />
     <ClInclude Include="include\tank.h" />
     <ClInclude Include="include\TankManager.h" />
+    <ClInclude Include="include\UIManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

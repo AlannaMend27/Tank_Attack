@@ -20,11 +20,6 @@ private:
 	sf::Vector2u windowSize;
 	sf::RenderWindow* window;
 
-	sf::Texture wall;
-	sf::Sprite wallMap;
-
-	sf::Texture background;
-	sf::Sprite backgroundMap;
 
 	// metodos privados
 
@@ -35,8 +30,6 @@ private:
 	bool isCorner(int row, int col);
 	bool isEveryNodeAccessible();
 
-	void renderMap();
-
 
 public:
 	// constructor y destructor
@@ -44,9 +37,7 @@ public:
 	~Map();
 
 	//metodos publicos
-	void initMap();
 	void createMap();
-	void drawMap();
 
 	bool isPositionValid(int row, int col);
 	bool isCellFree(int row, int col);
