@@ -122,7 +122,7 @@ git clone https://github.com/tu-usuario/Tank_Attack.git
 
 ---
 
-## 🎛️ Controles
+##  Controles
 
 | Accion | Control |
 |---|---|
