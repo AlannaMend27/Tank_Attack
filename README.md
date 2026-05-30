@@ -33,7 +33,7 @@ Tank Attack! es un juego de estrategia por turnos para dos jugadores locales. Ca
 
 ---
 
-## 🧠 Algoritmos implementados
+## Algoritmos implementados
 
 Todos los algoritmos y estructuras de datos fueron implementados desde cero, sin usar la STL:
 
@@ -48,7 +48,7 @@ Todos los algoritmos y estructuras de datos fueron implementados desde cero, sin
 
 ---
 
-## 🗂️ Estructura del proyecto
+## Estructura del proyecto
 
 ```
 Tank_Attack/
