@@ -1,7 +1,7 @@
 #include "map.h"
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "grafo.h"
+#include "graph.h"
 
 // constructor y destructor
 Map::Map(int n, sf::RenderWindow* windowGame, sf::Vector2u sizeWindow) {
@@ -14,7 +14,6 @@ Map::Map(int n, sf::RenderWindow* windowGame, sf::Vector2u sizeWindow) {
 	this->size = n;
 	this->window = windowGame;
 	this->windowSize = sizeWindow;
-	initMap();
 	createMap();
 }
 
@@ -30,19 +29,6 @@ Map::~Map() {
 
 // metodos publicos
 
-void Map::initMap()
-{
-	// muros
-	this->wall.loadFromFile("assets/textures/wall.png");
-	this->wallMap.setTexture(this->wall);
-
-	// mapa
-	this->background.loadFromFile("assets/textures/mapBackground.png");
-	this->backgroundMap.setTexture(this->background);
-
-
-}
-
 void Map::createMap()
 {
 	this->graphMap = new graph(MAP_SIZE * MAP_SIZE);
@@ -54,7 +40,6 @@ void Map::createMap()
 	}
 
 	this->generateGraph();
-	this->renderMap();
 }
 
 // metodos privados
@@ -90,6 +75,42 @@ void Map::generateObstacles()
 
 }
 
+int Map::getZoneWeights(int row, int col)
+{
+	// este metodo obtiene el peso de la conexion de los nodos en base a la distancia que hay hacia el centro
+	// entre mas cerca se este del centro mayor sera el peso (ya que normalmente a donde los jugadores quieren ir es al centro)
+
+	// obtiene la celda que esta en el centro del mapa para tomarla como referencia
+	const int centerCell = MAP_SIZE / 2;
+
+	// distancia aprox de la zonas
+	const int innerZone = 3;
+	const int midZone = 7;
+	const int outerZone = 10;
+
+	// peso de acuerdo a la zona
+	const int innerWeight = 10;
+	const int midWeight = 6;
+	const int outerWeight = 3;
+	const int defaultWeight = 1;
+
+	// distancia manhattan desde la celda actual hasta el centro
+	int distance = abs(row - centerCell) + abs(col - centerCell);
+
+	// establecer un peso en base al resultado de la distancia (la cual tiene rangos de 0 a 14, siendo 14 el valor mas cercano a la esquina)
+	if (distance < innerZone) {
+		return innerWeight;
+	}
+	if (distance < midZone) {
+		return midWeight;
+	}
+	if (distance < outerZone) {
+		return outerWeight;
+	}
+	return defaultWeight;
+	
+}
+
 void Map::generateGraph()
 {
 	// este metodo recorre las celdas de la matriz y crea cada nodo y sus conexiones 
@@ -101,18 +122,19 @@ void Map::generateGraph()
 				int rows[4] = { -1,1,0,0};
 				int columns[4] = { 0,0,-1,1};
 
-				// crear nodo en hash map que almacena todos los nodos del grafo
-				this->graphMap->createNode(1, toIndex(i, j));
-
 				// calcular donde estarian los vecinos
 				for (int k = 0; k < 4; k++) {
 					int newRow = rows[k] + i;
 					int newCol = columns[k] + j;
-
+					
 					// calcular si las posiciones son validas y si la celda a visitar no tiene obstaculo
 					if (this->isPositionValid(newRow, newCol) && this->mapMatrix[newRow][newCol] == 0) {
+
+						// obtener peso de la arista (dependiendoq ue tan cerca esta del centro)
+						int weightEdge = this->getZoneWeights(newRow, newCol);
+
 						// agregar arista
-						this->graphMap->createEdge(toIndex(i,j) , toIndex(newRow, newCol), 1);
+						this->graphMap->createEdge(toIndex(i,j) , toIndex(newRow, newCol), weightEdge);
 					}
 				}
 			}
@@ -232,39 +254,6 @@ bool Map::isEveryNodeAccessible()
 	return true;
 }
 
-void Map::renderMap()
-{
-	// obtener tamano de celdas y escalar muros a este tamano
-	float cellWidth = (float)this->windowSize.x / (MAP_SIZE + MARGIN_WIDTH);
-	float cellHeight = (float)this->windowSize.y / MAP_SIZE;
-
-	// calcular el ancho del mapa tomando en cuenta el margen lateral
-	float mapWidthPixels = this->windowSize.x - (MARGIN_WIDTH * cellWidth);
-
-	// dibujar mapa de fondo
-	this->backgroundMap.setScale(
-		mapWidthPixels / this->background.getSize().x,
-		(float)this->windowSize.y/ this->background.getSize().y
-	);
-	this->window->draw(this->backgroundMap);
-
-	this->wallMap.setScale(cellWidth / this->wall.getSize().x, cellHeight / this->wall.getSize().y);
-
-	for (int i = 0; i < MAP_SIZE; i++) {
-		for (int j = 0; j < MAP_SIZE; j++) {
-			if (this->mapMatrix[i][j] == 1) {
-				this->wallMap.setPosition(
-					j * cellWidth,
-					i * cellHeight
-				);
-				this->window->draw(this->wallMap);
-			}
-
-		}
-	}
-
-}
-
 //Este metodo sirve para render game, si la celda es libre, se puede mover/disparar con el tanque ahi
 bool Map::isCellFree(int row, int col)
 {
@@ -328,8 +317,3 @@ void Map::unblockMapNode(int row, int col)
 	this->mapMatrix[row][col] = 0;
 }
 
-//Publico para que pueda ser llamado
-void Map::drawMap()
-{
-	this->renderMap();
-}

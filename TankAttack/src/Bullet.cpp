@@ -39,7 +39,6 @@ Bullet::~Bullet()
 
 void Bullet::initBullet()
 {
-	// nota: este sprite es por mientras, no parece la de un tanque jajjaj
 	this->bulletTexture.loadFromFile("assets/textures/bullet.png");
 	this->bulletSprite.setTexture(this->bulletTexture);
 

@@ -2,12 +2,12 @@
 
 // constructor y destructor
 
-Player::Player(int playerID, Tank* tank1, Tank* tank2, bool isMyTurn)
+Player::Player(int playerID, Tank* tank1, Tank* tank2, float powerUpX, float powerUpY, sf::RenderWindow* window, sf::Vector2u windowSize)
 {
 	this->playerID = playerID;
 	this->tanks[0] = tank1;
 	this->tanks[1] = tank2;
-	this->isMyTurn = isMyTurn;
+	this->powerUp = new PowerUp(window, windowSize, powerUpX, powerUpY);
 }
 
 Player::~Player()
@@ -22,25 +22,8 @@ int Player::getID()
 	return this->playerID;
 }
 
-bool Player::isItMyTurn() 
-{
-	return this->isMyTurn;
-}
-
-//Activa o quita el turno a este jugador
-void Player::setTurn(bool value)
-{
-	this->isMyTurn = value;
-}
-
 void Player::selectTank(Tank* tank) 
 {
-	//Si ya esta seleccionado, quitarlo
-	if (this->selectedTank == tank) {
-		this->selectedTank = nullptr;
-		return;
-	}
-
 	this->selectedTank = tank;
 }
 
@@ -70,7 +53,34 @@ Tank* Player::getSelectedTank()
 	return this->selectedTank;
 }
 
-PowerUp* Player::getPowerUp() 
-{
-	return this->powerUp;
+// metodos relacionados al power up del jugador
+
+void Player::addRandomPowerUp() 
+{ 
+	this->powerUp->addRandom(); 
+}
+
+bool Player::hasPowerUp() 
+{ 
+	return this->powerUp->hasPowerUp(); 
+}
+
+void Player::usePowerUp() 
+{ 
+	this->powerUp->usePowerUp(); 
+}
+
+int Player::getActivePowerUp() 
+{ 
+	return this->powerUp->getActivePowerUp(); 
+}
+
+void Player::clearActivePowerUp() 
+{ 
+	this->powerUp->clearActivePowerUp(); 
+}
+
+void Player::drawPowerUp() 
+{ 
+	this->powerUp->drawPowerUp(); 
 }

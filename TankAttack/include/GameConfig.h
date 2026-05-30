@@ -23,10 +23,10 @@ const int MAX_MOVE_RADIUS = 3;
 const int RANDOM_MOVE_RADIUS = 3;
 
 // velocidad a la que se mueven los tanques (cantidad de pixeles que se mueve)
-const float TANK_SPEED = 0.8f;
+const float TANK_SPEED = 0.7f;
 
 //velocidad a la que se mueven las balas
-const float BULLET_SPEED = 0.6f;
+const float BULLET_SPEED = 0.8f;
 
 //Rebotes maximos de la bala
 const int MAX_BULLET_BOUNCES = 3;

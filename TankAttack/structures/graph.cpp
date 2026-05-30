@@ -1,11 +1,5 @@
-#include "grafo.h"
+#include "graph.h"
 #include "GameConfig.h"
-// destructor y constructor clase nodo
-Node::Node(int weigthNode)
-{
-	this->weight = weigthNode;
-}
-
 
 // destructor y constructor clase grafo
 
@@ -42,13 +36,6 @@ void graph::createEdge(int a, int b, int weightNode)
 
 }
 
-void graph::createNode(int weightNode, int id)
-{
-	if (this->Nodes.size() < capacity) {
-		Node newNode = Node(weightNode);
-		this->Nodes.insert({id,newNode});
-	}
-}
 
 //mopdifica una arista en la matriz de adyacencia (por si hay que actualizar que hay un tanque ahi)
 //nodoA es el origen, B el destino, value es 1 si hay coexion 0 si no

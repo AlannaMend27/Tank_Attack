@@ -1,5 +1,5 @@
 #pragma once
-#include "grafo.h"
+#include "graph.h"
 #include "queue.h"	
 #include "GameConfig.h"
 #include <SFML/Graphics.hpp>
@@ -20,21 +20,15 @@ private:
 	sf::Vector2u windowSize;
 	sf::RenderWindow* window;
 
-	sf::Texture wall;
-	sf::Sprite wallMap;
-
-	sf::Texture background;
-	sf::Sprite backgroundMap;
 
 	// metodos privados
 
 	void generateObstacles();
+	int getZoneWeights(int row, int col);
 	void generateGraph();
 
 	bool isCorner(int row, int col);
 	bool isEveryNodeAccessible();
-
-	void renderMap();
 
 
 public:
@@ -43,9 +37,7 @@ public:
 	~Map();
 
 	//metodos publicos
-	void initMap();
 	void createMap();
-	void drawMap();
 
 	bool isPositionValid(int row, int col);
 	bool isCellFree(int row, int col);
